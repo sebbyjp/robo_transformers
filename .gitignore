@@ -1,0 +1,4 @@
+test_imgs/
+checkpoints/gresearch_rt1*
+checkpoints/rt_1*
+checkpoints/trained_checkpoints*
