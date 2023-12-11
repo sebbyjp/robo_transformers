@@ -71,9 +71,6 @@ tensorboard-data-server==0.7.2
 tensorboard-plugin-wit==1.8.1
 tensorflow==2.15.0
 tensorflow-estimator==2.15.0
-tensorflow-io-gcs-filesystem==0.34.0
-tensorflow-macos==2.15.0
-tensorflow-probability==0.22.1
 termcolor==2.4.0
 tf-agents==0.18.0
 tomlkit==0.12.3

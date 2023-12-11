@@ -1,6 +1,9 @@
 [submodule "robotics_transformer"]
 	path = robotics_transformer
 	url = https://www.github.com/google-research/robotics_transformer.git
-[submodule "tensor2robot"]
-	path = tensor2robot
+[submodule "third_party/t2r/tensor2robot"]
+	path = third_party/t2r/tensor2robot
+	url = https://github.com/sebbyjp/tensor2robot.git
+[submodule "third_party/rt1/robotics_transformer"]
+	path = third_party/rt1/robotics_transformer
 	url = https://github.com/sebbyjp/tensor2robot.git
