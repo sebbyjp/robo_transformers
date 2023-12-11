@@ -1,3 +1,6 @@
+[![Code Coverage](https://codecov.io/gh/sebbyjp/dgl_ros/branch/code_cov/graph/badge.svg?token=9225d677-c4f2-4607-a9dd-8c22446f13bc)](https://codecov.io/gh/sebbyjp/dgl_ros)
+
+# Library for Robotic Transformers. RT-1 and RT-X-1.
 # Instructions:
 
 - Clone this repo: `https://github.com/sebbyjp/robo_transformers.git --recurse-submodules`
