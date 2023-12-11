@@ -81,11 +81,12 @@ def demo_imgs(batch_size: int = 1) -> list[tf.Tensor]:
     return imgs
 
 
-def run_on_test_imgs(batch_size: int = 1, loaded_policy: tf_agents.policies.tf_policy.TFPolicy = None):
+def run_on_test_imgs(batch_size: int = 1, rt1_policy: tf_agents.policies.tf_policy.TFPolicy = None):
+    if rt1_policy is None:
+        rt1_policy = load_rt1()
     instructions = text_embed(["pick up the block"], batch_size)
     imgs = demo_imgs(batch_size)
 
-    rt1_policy = load_rt1()
 
     observation = tf_agents.specs.zero_spec_nest(tf_agents.specs.from_spec(
         rt1_policy.time_step_spec.observation),
