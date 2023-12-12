@@ -36,16 +36,17 @@ def load_rt1(
     if not verbose:
         absl.logging.set_verbosity(absl.logging.ERROR)
     print('Loading RT-1 from checkpoint: {}...'.format(checkpoint_path))
-    rt1_policy: LoadedPolicy = LoadedPolicy(model_path=checkpoint_path,
-                                            load_specs_from_pbtxt=load_specs_from_pbtxt,
-                                            use_tf_function=use_tf_function,
-                                            batch_time_steps=batch_time_steps)
+    rt1_policy: LoadedPolicy = LoadedPolicy(
+        model_path=checkpoint_path,
+        load_specs_from_pbtxt=load_specs_from_pbtxt,
+        use_tf_function=use_tf_function,
+        batch_time_steps=batch_time_steps)
     absl.logging.set_verbosity(absl.logging.WARN)
     print('RT-1 loaded.')
     return rt1_policy
 
 
-def text_embed(input: str, batch_size: int = 1) -> tf.Tensor:
+def embed_text(input: str, batch_size: int = 1) -> tf.Tensor:
     '''Embeds a string using the Universal Sentence Encoder.
 
     Args:
@@ -60,7 +61,7 @@ def text_embed(input: str, batch_size: int = 1) -> tf.Tensor:
                       (batch_size, 512))
 
 
-def demo_imgs(batch_size: int = 1) -> list[tf.Tensor]:
+def get_demo_imgs(batch_size: int = 1) -> list[tf.Tensor]:
     '''Loads a demo video from the ./demo_vids/ directory.
 
     Returns:
@@ -81,19 +82,94 @@ def demo_imgs(batch_size: int = 1) -> list[tf.Tensor]:
     return imgs
 
 
-def run_on_test_imgs(batch_size: int = 1, rt1_policy: tf_agents.policies.tf_policy.TFPolicy = None):
+# Dumbed down representations of the actual specs.
+
+
+class RT1InternalState(object):
+
+    def __init__(self,
+                 batch_size: int = 1,
+                 nframes: int = 6,
+                 imgs: np.ndarray = None,
+                 t: int = 5,
+                 step_num: int = 5):
+        if imgs is None:
+            self.imgs = tf.zeros((batch_size, 6, HEIGHT, WIDTH, 3),
+                                 dtype=np.uint8)
+        self.batch_size = batch_size
+        self.nframes = nframes
+        self.t = tf.constant(t,
+                             shape=(batch_size, nframes, 1, 1, 1, 1),
+                             dtype=tf.int32)
+        self.step_num = tf.constant(step_num,
+                                    shape=(batch_size, nframes, 1, 1, 1, 1),
+                                    dtype=tf.int32)
+
+
+class RT1InferenceObservation(object):
+
+    def __init__(self,
+                 img: np.ndarray = None,
+                 instructions: str = "pick up the block"):
+        if img is None:
+            self.imgs = tf.zeros((HEIGHT, WIDTH, 3), dtype=np.uint8)
+
+
+def inference(instructions: list[str],
+              imgs: np.ndarray,
+              batch_size: int = 1,
+              reward: np.ndarray = None,
+              rt1_policy: tf_agents.policies.tf_policy.TFPolicy = None,
+              rt1_curr_state=None):
+    # Actually just run from the beginning instead of inventing state if we don't have it.
     if rt1_policy is None:
         rt1_policy = load_rt1()
-    instructions = text_embed(["pick up the block"], batch_size)
-    imgs = demo_imgs(batch_size)
+    if rt1_curr_state is None:
+        state = rt1_policy.get_initial_state(batch_size)
+        # Pretend that we have some state from a previous timestep.
+        state['image'] = tf.tile(tf.reshape(imgs[0], (1, 1, HEIGHT, WIDTH, 3)),
+                                 [1, 6, 1, 1, 1])
+        # Pretend this is timestep 5 out of 6.
+        state['t'] = tf.constant(5,
+                                 shape=(batch_size, 1, 1, 1, 1),
+                                 dtype=tf.int32)
+        state['step_num'] = tf.constant(5,
+                                        shape=(batch_size, 1, 1, 1, 1),
+                                        dtype=tf.int32)
 
+    # Start with zeros in all fields since actual spec has a lot more state
+    # than we care to give.
+    observation = tf_agents.specs.zero_spec_nest(tf_agents.specs.from_spec(
+        rt1_policy.time_step_spec.observation),
+                                                 outer_dims=(batch_size,))
+    observation['image'] = imgs[-1]
+    observation['natural_language_embedding'] = instructions[-1]
+
+    time_step = ts.transition(observation,
+                              reward=reward * tf.ones(
+                                  (batch_size,), dtype=tf.float32),
+                              outer_dims=(batch_size,))
+
+    action, state, _ = rt1_policy.action(time_step, state)
+
+    # View the results.
+    pprint(action)
+    # TODO(speralta): convert this to the dummed down specs.
+    return action, state
+
+
+# TODO(speralta): Use the inference method above to run on the demo images.
+def run_on_demo_imgs(batch_size: int = 1,
+                     rt1_policy: tf_agents.policies.tf_policy.TFPolicy = None):
+    instructions = embed_text(["pick up the block"], batch_size)
+    imgs = get_demo_imgs(batch_size)
 
     observation = tf_agents.specs.zero_spec_nest(tf_agents.specs.from_spec(
         rt1_policy.time_step_spec.observation),
                                                  outer_dims=(batch_size,))
 
-   # Give a small reward for the first observation which is far from the block.
-    reward = 0.25                                             
+    # Give a small reward for the first observation which is far from the block.
+    reward = 0.25
     observation['image'] = imgs[0]
     observation['natural_language_embedding'] = instructions
 
@@ -113,7 +189,8 @@ def run_on_test_imgs(batch_size: int = 1, rt1_policy: tf_agents.policies.tf_poli
         # Simulate the first image, far from the block.
         action, state, _ = rt1_policy.action(time_step, state)
         time_step = ts.transition(observation,
-                                  reward= reward * tf.ones((batch_size,), dtype=tf.float32),
+                                  reward=reward * tf.ones(
+                                      (batch_size,), dtype=tf.float32),
                                   outer_dims=(batch_size,))
 
         # Simulate the second image, closer to the block.
@@ -129,8 +206,9 @@ def run_on_test_imgs(batch_size: int = 1, rt1_policy: tf_agents.policies.tf_poli
     for i in range(6):
         img_out = Image.fromarray(state['image'][0, i, :, :, :].numpy().astype(
             np.uint8))
-        img_out.save('test_imgs/test_{}.png'.format(i))
+        img_out.save('demo_out/test_{}.png'.format(i))
 
 
 if __name__ == '__main__':
-    run_on_test_imgs()
+
+    run_on_demo_imgs()
