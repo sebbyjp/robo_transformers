@@ -7,7 +7,8 @@ from tf_agents.policies.py_tf_eager_policy import SavedModelPyTFEagerPolicy as L
 from tf_agents.trajectories import time_step as ts
 import tf_agents
 import absl.logging
-
+import robotics_transformer
+from importlib.resources import files
 WIDTH = 320
 HEIGHT = 256
 TEXT_ENCODER = hub.load("https://tfhub.dev/google/universal-sentence-encoder/4")
@@ -15,7 +16,8 @@ TEXT_ENCODER = hub.load("https://tfhub.dev/google/universal-sentence-encoder/4")
 
 def load_rt1(
         checkpoint_path:
-    str = './third_party/rt1/robotics_transformer/trained_checkpoints/rt1main',
+    # str = files('robotics_transformer').joinpath('trained_checkpoints/rt1main'),
+    str = '/Users/sebastianperalta/simply/dev/robo_transformers/third_party/RT_1/robotics_transformer/trained_checkpoints/rt1main',
         # rt_1_x_tf_trained_for_002272480_step"
         load_specs_from_pbtxt: bool = True,
         use_tf_function: bool = True,
@@ -163,6 +165,9 @@ def run_on_demo_imgs(batch_size: int = 1,
                      rt1_policy: tf_agents.policies.tf_policy.TFPolicy = None):
     instructions = embed_text(["pick up the block"], batch_size)
     imgs = get_demo_imgs(batch_size)
+
+    if rt1_policy is None:
+        rt1_policy = load_rt1()
 
     observation = tf_agents.specs.zero_spec_nest(tf_agents.specs.from_spec(
         rt1_policy.time_step_spec.observation),

@@ -14,25 +14,16 @@ Clone this repo:
 
 Use poetry
 
-`pip install poetry`
-
-Create the requirements.txt:
-
-`poetry install && poetry export`
+`pip install poetry && poetry config virtualenvs.in-project true`
 
 **Install dependencies:**
-
-- *Optional*: Activate a virtual environment:
-  
-    - `poetry config virtualenvs.in-project true`
-    - `poetry env use .venv/bin/activate` (Run `poetry env info` to find the proper path)
-
-`python3 -m pip install -r requirements.txt`
+`poetry install`
+`source .venv/bin/activate`
   
 ## Run Inference On Demo Images.
 `python robo_transformers/inference/rt1/rt1_inference.py`
   
-### Optional
+# Downloading checkpoints.
 To install the checkpoints from the robotics_transformer git repo, you will need git-lfs
 - Install git-lfs (use brew or apt if on unix), then
 
