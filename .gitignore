@@ -6,6 +6,7 @@ checkpoints/trained_checkpoints*
 **/*venv*
 .DS_Store
 dist/
+demo_img*
 
 checkpoints/*
 logs

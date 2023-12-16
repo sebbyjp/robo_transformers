@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "robo-transformers"
-version = "0.1.3"
+version = "0.1.7"
 description = "Robotics Transformer Inference in Tensorflow. RT-1, RT-2, RT-X, PALME."
 authors = ["Sebastian Peralta <peraltas@seas.upenn.edu>"]
 license = "MIT"
@@ -19,6 +19,7 @@ gdown = "^4.7.1"
 pillow = "^10.1.0"
 tensorflow-hub = "^0.15.0"
 tf-agents = "^0.19.0"
+importlib-resources = "^6.1.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.3"

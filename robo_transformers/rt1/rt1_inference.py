@@ -6,6 +6,7 @@ import tensorflow_hub as hub
 from tf_agents.policies.py_tf_eager_policy import SavedModelPyTFEagerPolicy as LoadedPolicy
 from tf_agents.trajectories import time_step as ts
 from tf_agents import specs
+from importlib.resources import files
 import absl.logging
 import os
 import gdown
@@ -111,9 +112,12 @@ def get_demo_imgs() -> tf.Tensor:
     '''
     imgs = []
     filenames = [
-        './demo_imgs/gripper_far_from_grasp.png',
-        './demo_imgs/gripper_mid_to_grasp.png',
-        './demo_imgs/gripper_almost_grasp.png'
+        files('robo_transformers').joinpath(
+            'demo_imgs/gripper_far_from_grasp.png'),
+        files('robo_transformers').joinpath(
+            'demo_imgs/gripper_mid_to_grasp.png'),
+        files('robo_transformers').joinpath(
+            'demo_imgs/gripper_almost_grasp.png')
     ]
     for fn in filenames:
         img = Image.open(fn)
@@ -206,7 +210,7 @@ def run_on_demo_imgs(policy: LoadedPolicy = None, verbose: bool = False):
 
     for i in range(3):
         Image.fromarray(imgs[i].numpy().astype(np.uint8)).save(
-            'demo_out/test_{}.png'.format(i))
+            './demo_img{}.png'.format(i))
         action, state = inference(instructions,
                                   imgs[i],
                                   rewards[i],
@@ -219,7 +223,10 @@ def run_on_demo_imgs(policy: LoadedPolicy = None, verbose: bool = False):
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        description=
+        'Run inference on demo images. Print the action and for three time steps and'
+        'save the demo images to ./demo_{i}.png')
     parser.add_argument('-m',
                         '--model_key',
                         type=str,
