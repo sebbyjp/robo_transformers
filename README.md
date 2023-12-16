@@ -2,11 +2,15 @@
 
 # Library for Robotic Transformers. RT-1 and RT-X-1.
 
-## Install:
+## Installation:
 
 Requirements:
-- python3.11
+python >= 3.9
 
+### Using PyPI
+`pip install robo-transformers`
+
+### From Source
 Clone this repo: 
 `git clone https://github.com/sebbyjp/robo_transformers.git`
 
