@@ -22,6 +22,7 @@ Use poetry
 
 **Install dependencies:**
 `poetry install`
+
 `source .venv/bin/activate`
   
 ## Run RT-1 Inference On Demo Images.
