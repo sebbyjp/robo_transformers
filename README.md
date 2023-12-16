@@ -2,13 +2,17 @@
 
 # Library for Robotic Transformers. RT-1 and RT-X-1.
 
-## Install:
+## Installation:
 
 Requirements:
-- python3.11
+python >= 3.9
 
+### Using PyPI
+`pip install robo-transformers`
+
+### From Source
 Clone this repo: 
-`git clone https://github.com/sebbyjp/robo_transformers.git --recurse-submodules`
+`git clone https://github.com/sebbyjp/robo_transformers.git`
 
 `cd robo_transformers`
 
@@ -20,20 +24,11 @@ Use poetry
 `poetry install`
 `source .venv/bin/activate`
   
-## Run Inference On Demo Images.
-`python robo_transformers/inference/rt1/rt1_inference.py`
-  
-# Downloading checkpoints.
-To install the checkpoints from the robotics_transformer git repo, you will need git-lfs
-- Install git-lfs (use brew or apt if on unix), then
+## Run RT-1 Inference On Demo Images.
+`python -m robo_transformers.rt1.rt1_inference`
 
-`cd third_party/rt1/robotics_transformer && git lfs install` 
-`git lfs pull https://www.github.com/google-research/robotics_transformer.git `
-
-### Optional: Download RT-1-X model from the Open-X Embodiment paper.
-- Install gsutil: `pip install gsutil`
-- Run: `gsutil -m cp -r gs://gdm-robotics-open-x-embodiment/open_x_embodiment_and_rt_x_oss/rt_1_x_tf_trained_for_002272480_step.zip ./checkpoints/`
-- Unzip: `cd checkpoints && unzip rt_1_x_tf_trained_for_002272480_step.zip`
+## See options:
+`python -m robo_transformers.rt1.rt1_inference --help`
   
 ## Notes
 `action, next_policy_state = model.act(time_step, curr_policy_state)`
