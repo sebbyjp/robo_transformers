@@ -25,10 +25,10 @@ Use poetry
 `source .venv/bin/activate`
   
 ## Run RT-1 Inference On Demo Images.
-`python robo_transformers/inference/rt1/rt1_inference.py`
+`python -m robo_transformers.rt1.rt1_inference`
 
 ## See options:
-`python robo_transformers/inference/rt1/rt1_inference.py --help`
+`python -m robo_transformers.rt1.rt1_inference --help`
   
 ## Notes
 `action, next_policy_state = model.act(time_step, curr_policy_state)`

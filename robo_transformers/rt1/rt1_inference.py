@@ -41,7 +41,10 @@ def download_checkpoint(key: str, output: str = None):
     output = os.path.join(downloads_folder, key)
     if not os.path.exists(output):
         print('Downloading new model: ', key)
-        gdown.download_folder(REGISTRY[key], output=downloads_folder)
+        gdown.download_folder(REGISTRY[key],
+                              output=downloads_folder,
+                              quiet=True,
+                              use_cookies=False)
         #   quiet=True)
     return output
 
@@ -182,9 +185,15 @@ def inference(instructions: list[str] | str,
         writer = tf.summary.create_file_writer("logs")
         with writer.as_default():
             for i in range(3):
-                tf.summary.scalar('world_vector{}'.format(i), action['world_vector'][0,i], step=step)
-                tf.summary.scalar('rotation_delta{}'.format(i), action['rotation_delta'][0,i], step=step)
-            tf.summary.scalar('gripper_closedness_action{}'.format(i), action['gripper_closedness_action'][0,0], step=step)  
+                tf.summary.scalar('world_vector{}'.format(i),
+                                  action['world_vector'][0, i],
+                                  step=step)
+                tf.summary.scalar('rotation_delta{}'.format(i),
+                                  action['rotation_delta'][0, i],
+                                  step=step)
+            tf.summary.scalar('gripper_closedness_action{}'.format(i),
+                              action['gripper_closedness_action'][0, 0],
+                              step=step)
             writer.flush()
     return action, next_state
 
@@ -192,19 +201,20 @@ def inference(instructions: list[str] | str,
 def run_on_demo_imgs(policy: LoadedPolicy = None, verbose: bool = False):
     instructions = "pick block"
     imgs = get_demo_imgs()
-    rewards = [0,0.5,0.9]
+    rewards = [0, 0.5, 0.9]
     state = None
 
     for i in range(3):
-        Image.fromarray(imgs[i].numpy().astype(
-         np.uint8)).save('demo_out/test_{}.png'.format(i))
+        Image.fromarray(imgs[i].numpy().astype(np.uint8)).save(
+            'demo_out/test_{}.png'.format(i))
         action, state = inference(instructions,
                                   imgs[i],
                                   rewards[i],
                                   policy,
                                   state,
                                   verbose=True,
-                                  step=i, done=(i==2))
+                                  step=i,
+                                  done=(i == 2))
         pprint(action)
 
 
@@ -229,6 +239,6 @@ if __name__ == '__main__':
     if args.verbose:
         tf.debugging.experimental.enable_dump_debug_info(
             './logs', tensor_debug_mode='FULL_HEALTH')
-    
+
     run_on_demo_imgs(load_rt1(args.model_key, args.checkpoint_path),
                      verbose=args.verbose)
