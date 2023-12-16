@@ -55,7 +55,7 @@ def load_rt1(model_key: str = 'rt1simreal',
              load_specs_from_pbtxt: bool = True,
              use_tf_function: bool = True,
              batch_time_steps: bool = False,
-             verbose: bool = False,
+             debug: bool = False,
              downloads_folder: bool = None) -> LoadedPolicy:
     '''Loads a trained RT-1 model from a checkpoint.
 
@@ -65,12 +65,12 @@ def load_rt1(model_key: str = 'rt1simreal',
         load_specs_from_pbtxt (bool, optional): Load from the .pb file in the checkpoint dir. Defaults to True.
         use_tf_function (bool, optional): Wraps function with optimized tf.Function to speed up inference. Defaults to True.
         batch_time_steps (bool, optional): Whether to automatically add a batch dimension during inference. Defaults to False.
-        verbose (bool, optional): _description_. Defaults to False.
+        debug (bool, optional): _description_. Defaults to False.
 
     Returns:
         tf_agents.polices.tf_policy.TFPolicy: A tf_agents policy object.
     '''
-    if not verbose:
+    if not debug:
         absl.logging.set_verbosity(absl.logging.ERROR)
     if checkpoint_path is None:
         checkpoint_path = download_checkpoint(model_key, downloads_folder)
@@ -140,7 +140,7 @@ def inference(
     policy: LoadedPolicy = None,
     policy_state=types.NestedArray,
     terminate=False,
-    verbose: bool = False,
+    debug: bool = False,
 ) -> tuple[ps.ActionType, types.NestedSpecTensorOrArray,
            types.NestedSpecTensorOrArray]:
     '''Runs inference on a list of images and instructions.
@@ -154,7 +154,7 @@ def inference(
         state (, optional). The internal network state. See 'policy state' in the "Data Types" section
             of README.md. Defaults to None.
         terminate (bool, optional): Whether or not to terminate the episode. Defaults to False.
-        verbose (bool, optional): Whether or not to print debugging information. Defaults to False.
+        debug (bool, optional): Whether or not to print debugging information. Defaults to False.
 
     Returns:
         tuple[Action, State, Info]: The action, state, and info from the policy Again see the
@@ -179,8 +179,8 @@ def inference(
     if reward is None:
         reward = tf.zeros((batch_size,), dtype=tf.float32)
 
-    # Start with zeros in all fields since actual spec has a lot more state
-    # than the policy uses.
+    # Create the observation. RT-1 only reads the 'image' and 'natural_language_embedding' keys
+    # so everything else can be zero.
     observation = specs.zero_spec_nest(specs.from_spec(
         policy.time_step_spec.observation),
                                        outer_dims=(batch_size,))
@@ -194,11 +194,24 @@ def inference(
         time_step = ts.termination(observation, reward)
     else:
         time_step = ts.transition(observation, reward)
+    
 
-    action, next_state, info = policy.action(time_step, policy_state)
+    if debug:
+        writer = tf.summary.create_file_writer('./runs')
+        tf.summary.trace_on(graph=True)
+        action, next_state, info = policy.action(time_step, policy_state)
+        with writer.as_default():
+            tf.summary.trace_export(
+                name="policy_call_trace",
+                step=step,
+                profiler_outdir="./runs")
+            writer.flush()
+    else:
+        action, next_state, info = policy.action(time_step, policy_state)
 
-    if verbose:
-        writer = tf.summary.create_file_writer("logs")
+
+    if debug:
+        writer = tf.summary.create_file_writer("./runs")
         with writer.as_default():
             for i in range(3):
                 tf.summary.scalar('world_vector{}'.format(i),
@@ -210,10 +223,11 @@ def inference(
             tf.summary.scalar('gripper_closedness_action{}'.format(i),
                               action['gripper_closedness_action'][0, 0],
                               step=step)
+
             writer.flush()
     return action, next_state, info
 
-def run_on_demo_imgs(policy: LoadedPolicy = None, verbose: bool = False):
+def run_on_demo_imgs(policy: LoadedPolicy = None, debug: bool = False):
     instructions = "pick block"
     imgs = get_demo_imgs()
     rewards = [0, 0.5, 0.9]
@@ -226,7 +240,7 @@ def run_on_demo_imgs(policy: LoadedPolicy = None, verbose: bool = False):
                                   rewards[step],
                                   policy,
                                   state,
-                                  verbose=verbose,
+                                  debug=debug,
                                   terminate=(step == 2))
         pprint(action)
 
@@ -246,9 +260,9 @@ if __name__ == '__main__':
                         '--checkpoint_path',
                         type=str,
                         default=None,
-                        help='Custom checkpoint path.')
-    parser.add_argument('-v',
-                        '--verbose',
+                        help='Custom checkpoint path. This overrides the model key.')
+    parser.add_argument('-d',
+                        '--debug',
                         action='store_true',
                         help='Whether or not to print debugging information.')
     parser.add_argument('-s',
@@ -256,13 +270,13 @@ if __name__ == '__main__':
                         action='store_true',
                         help='Whether or not to show the demo images.')
     args = parser.parse_args()
-    if args.verbose:
+    if args.debug:
         tf.debugging.experimental.enable_dump_debug_info(
-            './logs', tensor_debug_mode='FULL_HEALTH')
+            './runs', tensor_debug_mode='FULL_HEALTH')
 
     if args.show_demo_imgs:
         os.makedirs('./demo_imgs', exist_ok=True)
         get_demo_imgs('./demo_imgs')
 
     run_on_demo_imgs(load_rt1(args.model_key, args.checkpoint_path),
-                     verbose=args.verbose)
+                     debug=args.debug)
