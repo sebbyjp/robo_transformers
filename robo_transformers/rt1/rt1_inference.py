@@ -168,7 +168,7 @@ def inference(
         batch_size = 1
         imgs = np.expand_dims(imgs, axis=0)
         if reward is not None:
-            reward = [reward]
+            reward = reward * tf.constant((batch_size,), dtype=tf.float32)
     else:
         batch_size = len(instructions)
 
@@ -213,24 +213,23 @@ def inference(
             writer.flush()
     return action, next_state, info
 
-
 def run_on_demo_imgs(policy: LoadedPolicy = None, verbose: bool = False):
     instructions = "pick block"
     imgs = get_demo_imgs()
     rewards = [0, 0.5, 0.9]
     state = None
 
-    for i in range(3):
-        Image.fromarray(imgs[i].numpy().astype(np.uint8)).save(
-            './demo_img{}.png'.format(i))
+    for step in range(3):
+        Image.fromarray(imgs[step].numpy().astype(np.uint8)).save(
+            './demo_img{}.png'.format(step))
         action, state, _ = inference(instructions,
-                                     imgs[i],
-                                     rewards[i],
-                                     step=i,
-                                     policy=policy,
-                                     policy_state=state,
-                                     verbose=verbose,
-                                     terminate=(i == 2))
+                                  imgs[step],
+                                  step,
+                                  rewards[step],
+                                  policy,
+                                  state,
+                                  verbose=verbose,
+                                  terminate=(step == 2))
         pprint(action)
 
 
