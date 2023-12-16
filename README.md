@@ -7,11 +7,12 @@
 Requirements:
 python >= 3.9
 
-### Using PyPI
+### Recommended: Using PyPI
 `pip install robo-transformers`
 
 ### From Source
-Clone this repo: 
+Clone this repo:
+
 `git clone https://github.com/sebbyjp/robo_transformers.git`
 
 `cd robo_transformers`
@@ -20,18 +21,39 @@ Use poetry
 
 `pip install poetry && poetry config virtualenvs.in-project true`
 
-**Install dependencies:**
+**Install dependencies**
+
 `poetry install`
+
+Poetry has installed the dependencies in a virtualenv so we need to activate it.
 
 `source .venv/bin/activate`
   
 ## Run RT-1 Inference On Demo Images.
 `python -m robo_transformers.rt1.rt1_inference`
 
-## See options:
+## See usage:
+You can specify a custom checkpoint path or the model_keys for the three mentioned in the RT-1 paper as well as RT-X.
+
 `python -m robo_transformers.rt1.rt1_inference --help`
+
+## Run Inference Server
+The inference server takes care of all the internal state so all you need to specify is an instruction and image. You may also pass in a reward and termination signal. Batching is also supported.
+```
+from robo_transformers.inference_server import InferenceServer
+import numpy as np
+
+# Somewhere in your robot control stack code...
+
+instruction = "pick block"
+img = np.random.randn(256, 320, 3) # Width, Height, RGB
+inference = InferenceServer()
+
+action = inference(instruction, img)
+```
+
   
-## Notes
+## Data Types
 `action, next_policy_state = model.act(time_step, curr_policy_state)`
 ### policy state is internal state of network:
 In this case it is a 6-frame window of past observations,actions and the index in time.

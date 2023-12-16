@@ -4,8 +4,9 @@ import numpy as np
 import PIL.Image as Image
 import tensorflow_hub as hub
 from tf_agents.policies.py_tf_eager_policy import SavedModelPyTFEagerPolicy as LoadedPolicy
-from tf_agents.trajectories import time_step as ts
+from tf_agents.trajectories import time_step as ts, policy_step as ps
 from tf_agents import specs
+from tf_agents.typing import types
 from importlib.resources import files
 import absl.logging
 import os
@@ -23,10 +24,10 @@ REGISTRY = {
         "https://drive.google.com/drive/folders/1_nudHVmGuGUpGcrLlswg9O-aWy27Cjg0?usp=drive_link",
     'rt1multirobot':
         "https://drive.google.com/drive/folders/1EWjKSnfvD-ANPTLxugpCVP5zU6ADy8km?usp=drive_link",
-    'xlatest':
+    'rtx1':
         "https://drive.google.com/drive/folders/1LjTizUsqM88-5uHAIczTrObB3_z4OlgE?usp=drive_link",
-    'xgresearch':
-        "https://drive.google.com/drive/folders/185nP-a8z-1Pm6Zc3yU2qZ01hoszyYx51?usp=drive_link"
+    # 'xgresearch':
+    #     "https://drive.google.com/drive/folders/185nP-a8z-1Pm6Zc3yU2qZ01hoszyYx51?usp=drive_link"
 }
 
 
@@ -46,7 +47,6 @@ def download_checkpoint(key: str, output: str = None):
                               output=downloads_folder,
                               quiet=True,
                               use_cookies=False)
-        #   quiet=True)
     return output
 
 
@@ -88,7 +88,8 @@ def load_rt1(model_key: str = 'rt1simreal',
 
 
 def embed_text(input: list[str] | str, batch_size: int = 1) -> tf.Tensor:
-    '''Embeds a string using the Universal Sentence Encoder.
+    '''Embeds a string using the Universal Sentence Encoder. Copies the string
+        to fill the batch dimension.
 
     Args:
         input (str): The string to embed.
@@ -104,8 +105,8 @@ def embed_text(input: list[str] | str, batch_size: int = 1) -> tf.Tensor:
                       (batch_size, 512))
 
 
-def get_demo_imgs() -> tf.Tensor:
-    '''Loads a demo video from the ./demo_vids/ directory.
+def get_demo_imgs(output=None) -> tf.Tensor:
+    '''Loads a demo video from the directory.
 
     Returns:
         list[tf.Tensor]: A list of tensors of shape (batch_size, HEIGHT, WIDTH, 3).
@@ -121,6 +122,8 @@ def get_demo_imgs() -> tf.Tensor:
     ]
     for fn in filenames:
         img = Image.open(fn)
+        if output is not None:
+            img.save(os.path.join(output, fn.name))
         img = np.array(img.resize((WIDTH, HEIGHT)).convert('RGB'))
         img = np.expand_dims(img, axis=0)
         img = tf.reshape(tf.convert_to_tensor(img, dtype=tf.uint8),
@@ -129,30 +132,38 @@ def get_demo_imgs() -> tf.Tensor:
     return tf.concat(imgs, 0)
 
 
-def inference(instructions: list[str] | str,
-              imgs: list[np.ndarray] | np.ndarray,
-              reward: list[float] | float = None,
-              policy: LoadedPolicy = None,
-              state=None,
-              verbose: bool = False,
-              step: int = 0,
-              done: bool = False):
+def inference(
+    instructions: list[str] | str,
+    imgs: list[np.ndarray] | np.ndarray,
+    step: int,
+    reward: list[float] | float = None,
+    policy: LoadedPolicy = None,
+    policy_state=types.NestedArray,
+    terminate=False,
+    verbose: bool = False,
+) -> tuple[ps.ActionType, types.NestedSpecTensorOrArray,
+           types.NestedSpecTensorOrArray]:
     '''Runs inference on a list of images and instructions.
 
     Args:
         instructions (list[str]): A list of instructions. E.g. ["pick up the block"]
         imgs (list[np.ndarray]): A list of images with shape[(HEIGHT, WIDTH, 3)]
+        step (int): The current time step.
         reward (list[float], optional): Defaults to None.
         policy (tf_agents.policies.tf_policy.TFPolicy, optional): Defaults to None.
-        state (_type_, optional). Defaults to None.
+        state (, optional). The internal network state. See 'policy state' in the "Data Types" section
+            of README.md. Defaults to None.
+        terminate (bool, optional): Whether or not to terminate the episode. Defaults to False.
         verbose (bool, optional): Whether or not to print debugging information. Defaults to False.
 
     Returns:
-        _type_: _description_
+        tuple[Action, State, Info]: The action, state, and info from the policy Again see the
+         "Data Types" section of README.md.
     '''
     if policy is None:
         policy = load_rt1()
 
+    # Calculate batch size from instructions shape.
     if isinstance(instructions, str):
         batch_size = 1
         imgs = np.expand_dims(imgs, axis=0)
@@ -161,11 +172,10 @@ def inference(instructions: list[str] | str,
     else:
         batch_size = len(instructions)
 
-    reward = tf.constant(reward, dtype=tf.float32)
     imgs = tf.constant(imgs, dtype=tf.uint8)
 
-    if state is None:
-        state = policy.get_initial_state(batch_size)
+    if policy_state is None:
+        policy_state = policy.get_initial_state(batch_size)
     if reward is None:
         reward = tf.zeros((batch_size,), dtype=tf.float32)
 
@@ -177,13 +187,15 @@ def inference(instructions: list[str] | str,
     observation['image'] = imgs
     observation['natural_language_embedding'] = embed_text(
         instructions, batch_size)
+
     if step == 0:
         time_step = ts.restart(observation, batch_size)
-    elif done:
+    elif terminate:
         time_step = ts.termination(observation, reward)
     else:
         time_step = ts.transition(observation, reward)
-    action, next_state, info = policy.action(time_step, state)
+
+    action, next_state, info = policy.action(time_step, policy_state)
 
     if verbose:
         writer = tf.summary.create_file_writer("logs")
@@ -199,7 +211,7 @@ def inference(instructions: list[str] | str,
                               action['gripper_closedness_action'][0, 0],
                               step=step)
             writer.flush()
-    return action, next_state
+    return action, next_state, info
 
 
 def run_on_demo_imgs(policy: LoadedPolicy = None, verbose: bool = False):
@@ -211,14 +223,14 @@ def run_on_demo_imgs(policy: LoadedPolicy = None, verbose: bool = False):
     for i in range(3):
         Image.fromarray(imgs[i].numpy().astype(np.uint8)).save(
             './demo_img{}.png'.format(i))
-        action, state = inference(instructions,
-                                  imgs[i],
-                                  rewards[i],
-                                  policy,
-                                  state,
-                                  verbose=True,
-                                  step=i,
-                                  done=(i == 2))
+        action, state, _ = inference(instructions,
+                                     imgs[i],
+                                     rewards[i],
+                                     step=i,
+                                     policy=policy,
+                                     policy_state=state,
+                                     verbose=verbose,
+                                     terminate=(i == 2))
         pprint(action)
 
 
@@ -226,12 +238,12 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description=
         'Run inference on demo images. Print the action and for three time steps and'
-        'save the demo images to ./demo_{i}.png')
+        'save the demo images to ./demo_imgs if requested.')
     parser.add_argument('-m',
                         '--model_key',
                         type=str,
                         choices=REGISTRY.keys(),
-                        default='xlatest',
+                        default='rtx1',
                         help='Which model to load.')
     parser.add_argument('-c',
                         '--checkpoint_path',
@@ -242,10 +254,18 @@ if __name__ == '__main__':
                         '--verbose',
                         action='store_true',
                         help='Whether or not to print debugging information.')
+    parser.add_argument('-s',
+                        '--show-demo-imgs',
+                        action='store_true',
+                        help='Whether or not to show the demo images.')
     args = parser.parse_args()
     if args.verbose:
         tf.debugging.experimental.enable_dump_debug_info(
             './logs', tensor_debug_mode='FULL_HEALTH')
+
+    if args.show_demo_imgs:
+        os.makedirs('./demo_imgs', exist_ok=True)
+        get_demo_imgs('./demo_imgs')
 
     run_on_demo_imgs(load_rt1(args.model_key, args.checkpoint_path),
                      verbose=args.verbose)
