@@ -220,8 +220,6 @@ def run_on_demo_imgs(policy: LoadedPolicy = None, verbose: bool = False):
     state = None
 
     for step in range(3):
-        Image.fromarray(imgs[step].numpy().astype(np.uint8)).save(
-            './demo_img{}.png'.format(step))
         action, state, _ = inference(instructions,
                                   imgs[step],
                                   step,
