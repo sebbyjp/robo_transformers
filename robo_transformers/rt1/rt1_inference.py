@@ -38,7 +38,19 @@ flags.DEFINE_boolean('show', False,
 
 WIDTH = 320
 HEIGHT = 256
-TEXT_ENCODER = hub.load("https://tfhub.dev/google/universal-sentence-encoder/4")
+
+class LazyLoader:
+    '''Lazy loads a tensorflow module.'''
+    def __init__(self, url: str):
+        self.url = url
+        self.module = None
+
+    def __getattr__(self, name: str):
+        if self.module is None:
+            self.module = hub.load(self.url)
+        return getattr(self.module, name)
+
+TEXT_ENCODER = LazyLoader("https://tfhub.dev/google/universal-sentence-encoder/4")
 
 
 
