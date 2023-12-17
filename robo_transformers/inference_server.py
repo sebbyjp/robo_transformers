@@ -8,14 +8,12 @@ import numpy as np
 class InferenceServer:
 
     def __init__(self,
-                 model: PyPolicy | TFPolicy = None,
-                 verbose: bool = False):
+                 model: PyPolicy | TFPolicy = None):
         self.model = model
         if self.model is None:
             self.model = load_rt1()
 
         self.policy_state = None
-        self.verbose = verbose
         self.step = 0
 
     def __call__(self,
@@ -24,8 +22,7 @@ class InferenceServer:
                  reward: list[float] | float = None,
                  terminate: bool = False) -> ps.ActionType:
         action, state, _ = rt1_inference(instructions, imgs, self.step, reward,
-                                  self.model, self.policy_state, terminate,
-                                  self.verbose)
+                                  self.model, self.policy_state, terminate)
         self.policy_state = state
         self.step += 1
         return action
