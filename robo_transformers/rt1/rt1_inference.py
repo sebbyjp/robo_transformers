@@ -282,4 +282,9 @@ def main(_):
 if __name__ == '__main__':
     app.run(main)
 else:
-    FLAGS(sys.argv)
+    # TODO (speralta): Consider reading in flags from argv
+    # CAREFUL: This will crash if you allow flags from argv that haven't been
+    # defined.
+    # For now, only apps that use app.run() can set flags.
+    # Read in the program name
+    FLAGS(sys.argv[0:1])

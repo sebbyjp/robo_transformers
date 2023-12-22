@@ -23,4 +23,4 @@ jobs:
           poetry config virtualenvs.in-project true
           poetry install
           source .venv/bin/activate
-          PYTHONPATH=$PYTHONPATH:. python -m pytest tests.test_inference_server
+          PYTHONPATH=$PYTHONPATHPATH:. pytest tests/test_inference_server.py 
