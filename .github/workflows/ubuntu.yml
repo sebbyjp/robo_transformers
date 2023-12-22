@@ -1,0 +1,26 @@
+name: ubuntu | python 3.9 | python 3.11
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version:
+          - "3.9"
+          - "3.11"
+    name: Python ${{ matrix.python-version }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        run: |
+          pip install poetry
+          poetry config virtualenvs.in-project true
+          poetry install
+          source .venv/bin/activate
+          PYTHONPATH=$PYTHONPATH:. python -m pytest tests.test_inference_server

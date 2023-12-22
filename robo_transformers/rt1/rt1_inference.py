@@ -10,6 +10,7 @@ from importlib.resources import files
 from absl import logging, flags, app
 import os
 import gdown
+import sys
 from pprint import pprint
 
 REGISTRY = {
@@ -19,7 +20,7 @@ REGISTRY = {
         "https://drive.google.com/drive/folders/1_nudHVmGuGUpGcrLlswg9O-aWy27Cjg0?usp=drive_link",
     'rt1multirobot':
         "https://drive.google.com/drive/folders/1EWjKSnfvD-ANPTLxugpCVP5zU6ADy8km?usp=drive_link",
-    'rtx1':
+    'rt1x':
         "https://drive.google.com/drive/folders/1LjTizUsqM88-5uHAIczTrObB3_z4OlgE?usp=drive_link",
     # 'xgresearch':
     #     "https://drive.google.com/drive/folders/185nP-a8z-1Pm6Zc3yU2qZ01hoszyYx51?usp=drive_link"
@@ -38,10 +39,24 @@ flags.DEFINE_boolean('show', False,
 
 WIDTH = 320
 HEIGHT = 256
-TEXT_ENCODER = hub.load("https://tfhub.dev/google/universal-sentence-encoder/4")
 
+class LazyLoader:
+    '''Lazy loads a tensorflow module.'''
+    def __init__(self, url: str):
+        self.url = url
+        self.module = None
 
+    def __getattr__(self, name: str):
+        if self.module is None:
+            self.module = hub.load(self.url)
+        return getattr(self.module, name)
+    
+    def __call__(self, *args, **kwargs):
+        if self.module is None:
+            self.module = hub.load(self.url)
+        return self.module(*args, **kwargs)
 
+TEXT_ENCODER = LazyLoader("https://tfhub.dev/google/universal-sentence-encoder/4")
 
 def download_checkpoint(key: str, output: str = None):
     if key not in REGISTRY.keys():
@@ -234,11 +249,12 @@ def inference(
             writer.flush()
     return action, next_state, info
 
-def run_demo():
-    images = get_demo_images(output=os.getcwd())
-    policy = load_rt1(FLAGS.model_key, FLAGS.checkpoint_path)
+def run_demo(policy: LoadedPolicy = None):
+    if policy is None:
+        policy = load_rt1(FLAGS.model_key, FLAGS.checkpoint_path)
     # Pass in an instruction through the --instructions flag.
     # The rewards will not affect the inference at test time.
+    images = get_demo_images(output=os.getcwd())
     rewards = [0,0,0]
     for step in range(3):
         action, state, _ = inference(FLAGS.instruction,
@@ -265,3 +281,5 @@ def main(_):
 
 if __name__ == '__main__':
     app.run(main)
+else:
+    FLAGS(sys.argv)

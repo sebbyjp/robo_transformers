@@ -4,11 +4,15 @@ from tf_agents.trajectories import policy_step as ps
 from robo_transformers.rt1.rt1_inference import load_rt1, inference as rt1_inference
 import numpy as np
 
-
+WIDTH = 320
+HEIGHT = 256
 class InferenceServer:
 
     def __init__(self,
-                 model: PyPolicy | TFPolicy = None):
+                 model: PyPolicy | TFPolicy = None, pass_through: bool = False):
+        self.pass_through = pass_through
+        if pass_through:
+            return
         self.model = model
         if self.model is None:
             self.model = load_rt1()
@@ -20,9 +24,32 @@ class InferenceServer:
                  instructions: list[str] | str,
                  imgs: list[np.ndarray] | np.ndarray,
                  reward: list[float] | float = None,
-                 terminate: bool = False) -> ps.ActionType:
+                 terminate: bool = False,
+                 save: bool = False) -> ps.ActionType:
+
+        imgs = np.array(imgs, dtype=np.uint8)
+        if (len(imgs.shape) not in [3, 4] or
+        (len(imgs.shape) == 3 and (imgs.shape[0] != WIDTH or imgs.shape[1] != HEIGHT or imgs.shape[2] != 3)) or
+            len(imgs.shape) == 4 and (imgs.shape[1] != WIDTH or imgs.shape[2] != HEIGHT or imgs.shape[3] != 3)):
+            from PIL import Image
+            imgs = np.array(Image.fromarray(imgs).resize((WIDTH, HEIGHT)).convert('RGB'))
+        if save:
+            imgs = Image.fromarray(imgs).resize((WIDTH, HEIGHT)).convert('RGB')
+            imgs.save("rt1_saved_img.png")
+        imgs = np.array(imgs)
+        
+        if self.pass_through:
+            return {
+                'base_displacement_vector': np.array([0.0, 0.0], dtype=np.float32),
+                'base_displacement_vertical_rotation': np.array([0.0], dtype=np.float32),
+                'gripper_closedness_action': np.array([0.0], dtype=np.float32),
+                'rotation_delta': np.array([0.0, 0.0, 0.0], dtype=np.float32),
+                'terminate_episode': np.array([0, 0, 0], dtype=np.int32),
+                'world_vector': np.array([0.0, 0.0, 0.0], dtype=np.float32),
+            }
+
         action, state, _ = rt1_inference(instructions, imgs, self.step, reward,
-                                  self.model, self.policy_state, terminate)
+                            self.model, self.policy_state, terminate)
         self.policy_state = state
         self.step += 1
         return action

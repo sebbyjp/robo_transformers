@@ -986,24 +986,24 @@ testing = ["pytest", "pytest-benchmark"]
 
 [[package]]
 name = "protobuf"
-version = "4.23.0"
+version = "4.23.4"
 description = ""
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "protobuf-4.23.0-cp310-abi3-win32.whl", hash = "sha256:6c16657d6717a0c62d5d740cb354fbad1b0d8cb811669e06fc1caa0ff4799ddd"},
-    {file = "protobuf-4.23.0-cp310-abi3-win_amd64.whl", hash = "sha256:baca40d067dddd62141a129f244703160d278648b569e90bb0e3753067644711"},
-    {file = "protobuf-4.23.0-cp37-abi3-macosx_10_9_universal2.whl", hash = "sha256:2b94bd6df92d71bd1234a2ffe7ce96ddf6d10cf637a18d6b55ad0a89fbb7fc21"},
-    {file = "protobuf-4.23.0-cp37-abi3-manylinux2014_aarch64.whl", hash = "sha256:9f5a0fbfcdcc364f3986f9ed9f8bb1328fb84114fd790423ff3d7fdb0f85c2d1"},
-    {file = "protobuf-4.23.0-cp37-abi3-manylinux2014_x86_64.whl", hash = "sha256:ebde3a023b8e11bfa6c890ef34cd6a8b47d586f26135e86c21344fe433daf2e2"},
-    {file = "protobuf-4.23.0-cp37-cp37m-win32.whl", hash = "sha256:7cb5b9a05ce52c6a782bb97de52679bd3438ff2b7460eff5da348db65650f227"},
-    {file = "protobuf-4.23.0-cp37-cp37m-win_amd64.whl", hash = "sha256:6fe180b56e1169d72ecc4acbd39186339aed20af5384531b8e8979b02bbee159"},
-    {file = "protobuf-4.23.0-cp38-cp38-win32.whl", hash = "sha256:d5a35ff54e3f62e8fc7be02bb0d2fbc212bba1a5a9cc2748090690093996f07b"},
-    {file = "protobuf-4.23.0-cp38-cp38-win_amd64.whl", hash = "sha256:e62fb869762b4ba18666370e2f8a18f17f8ab92dd4467295c6d38be6f8fef60b"},
-    {file = "protobuf-4.23.0-cp39-cp39-win32.whl", hash = "sha256:03eee35b60317112a72d19c54d0bff7bc58ff12fea4cd7b018232bd99758ffdf"},
-    {file = "protobuf-4.23.0-cp39-cp39-win_amd64.whl", hash = "sha256:36f5370a930cb77c8ad2f4135590c672d0d2c72d4a707c7d0058dce4b4b4a598"},
-    {file = "protobuf-4.23.0-py3-none-any.whl", hash = "sha256:9744e934ea5855d12191040ea198eaf704ac78665d365a89d9572e3b627c2688"},
-    {file = "protobuf-4.23.0.tar.gz", hash = "sha256:5f1eba1da2a2f3f7df469fccddef3cc060b8a16cfe3cc65961ad36b4dbcf59c5"},
+    {file = "protobuf-4.23.4-cp310-abi3-win32.whl", hash = "sha256:5fea3c64d41ea5ecf5697b83e41d09b9589e6f20b677ab3c48e5f242d9b7897b"},
+    {file = "protobuf-4.23.4-cp310-abi3-win_amd64.whl", hash = "sha256:7b19b6266d92ca6a2a87effa88ecc4af73ebc5cfde194dc737cf8ef23a9a3b12"},
+    {file = "protobuf-4.23.4-cp37-abi3-macosx_10_9_universal2.whl", hash = "sha256:8547bf44fe8cec3c69e3042f5c4fb3e36eb2a7a013bb0a44c018fc1e427aafbd"},
+    {file = "protobuf-4.23.4-cp37-abi3-manylinux2014_aarch64.whl", hash = "sha256:fee88269a090ada09ca63551bf2f573eb2424035bcf2cb1b121895b01a46594a"},
+    {file = "protobuf-4.23.4-cp37-abi3-manylinux2014_x86_64.whl", hash = "sha256:effeac51ab79332d44fba74660d40ae79985901ac21bca408f8dc335a81aa597"},
+    {file = "protobuf-4.23.4-cp37-cp37m-win32.whl", hash = "sha256:c3e0939433c40796ca4cfc0fac08af50b00eb66a40bbbc5dee711998fb0bbc1e"},
+    {file = "protobuf-4.23.4-cp37-cp37m-win_amd64.whl", hash = "sha256:9053df6df8e5a76c84339ee4a9f5a2661ceee4a0dab019e8663c50ba324208b0"},
+    {file = "protobuf-4.23.4-cp38-cp38-win32.whl", hash = "sha256:e1c915778d8ced71e26fcf43c0866d7499891bca14c4368448a82edc61fdbc70"},
+    {file = "protobuf-4.23.4-cp38-cp38-win_amd64.whl", hash = "sha256:351cc90f7d10839c480aeb9b870a211e322bf05f6ab3f55fcb2f51331f80a7d2"},
+    {file = "protobuf-4.23.4-cp39-cp39-win32.whl", hash = "sha256:6dd9b9940e3f17077e820b75851126615ee38643c2c5332aa7a359988820c720"},
+    {file = "protobuf-4.23.4-cp39-cp39-win_amd64.whl", hash = "sha256:0a5759f5696895de8cc913f084e27fd4125e8fb0914bb729a17816a33819f474"},
+    {file = "protobuf-4.23.4-py3-none-any.whl", hash = "sha256:e9d0be5bf34b275b9f87ba7407796556abeeba635455d036c7351f7c183ef8ff"},
+    {file = "protobuf-4.23.4.tar.gz", hash = "sha256:ccd9430c0719dce806b93f89c91de7977304729e55377f872a92465d548329a9"},
 ]
 
 [[package]]
@@ -1290,57 +1290,6 @@ files = [
     {file = "tensorboard_data_server-0.7.2-py3-none-macosx_10_9_x86_64.whl", hash = "sha256:9fe5d24221b29625dbc7328b0436ca7fc1c23de4acf4d272f1180856e32f9f60"},
     {file = "tensorboard_data_server-0.7.2-py3-none-manylinux_2_31_x86_64.whl", hash = "sha256:ef687163c24185ae9754ed5650eb5bc4d84ff257aabdc33f0cc6f74d8ba54530"},
 ]
-
-[[package]]
-name = "tensorflow"
-version = "2.15.0"
-description = "TensorFlow is an open source machine learning framework for everyone."
-optional = false
-python-versions = ">=3.9"
-files = [
-    {file = "tensorflow-2.15.0-cp310-cp310-macosx_10_15_x86_64.whl", hash = "sha256:9b248e0f4316b3a3c54cd1f83edfb7a761d473060c1972a8ea31a90d5de3aa72"},
-    {file = "tensorflow-2.15.0-cp310-cp310-macosx_12_0_arm64.whl", hash = "sha256:eaf420d8b8ec1d4bd75859be7d7545d8e7052726eed8456fdbba63718e7e07ea"},
-    {file = "tensorflow-2.15.0-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:e98aab454fc73ff1900314821e5bafbf20840ada2004c8caccf4d92e0e12a628"},
-    {file = "tensorflow-2.15.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:ed601b43df9b7d9bed0203b34bcb9356efd4f671eaaac1046b7166a2afee0cf8"},
-    {file = "tensorflow-2.15.0-cp310-cp310-win_amd64.whl", hash = "sha256:2d88f8b71f4a8d9ab9dc7c8e42b14ca0f53d1daab0f989b8f2918907c2891f41"},
-    {file = "tensorflow-2.15.0-cp311-cp311-macosx_10_15_x86_64.whl", hash = "sha256:1e0716622ed7af867d8b1997b00a2940f1a1587dee923ff53efa2ee506992f32"},
-    {file = "tensorflow-2.15.0-cp311-cp311-macosx_12_0_arm64.whl", hash = "sha256:124930e7d4f5d74c61a5c80d642a26c22fe0c42fdd383fe9ee5803c3ac9ed4ce"},
-    {file = "tensorflow-2.15.0-cp311-cp311-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:852efeb4d18beedac0120c4f2d4f4dccf4c090bb6740c5199d395ff609e85e98"},
-    {file = "tensorflow-2.15.0-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:dee8ec2b2c6c942ae65d25746e53cdc475e82d5fcbbb3009ce47f5963d69ebfc"},
-    {file = "tensorflow-2.15.0-cp311-cp311-win_amd64.whl", hash = "sha256:e05a48006930e4e9e68468e7affed3bbce8a1c7fe6df86500496ad1558804a78"},
-    {file = "tensorflow-2.15.0-cp39-cp39-macosx_10_15_x86_64.whl", hash = "sha256:2cfcdde1ff3c01be617e99ce9783c49cb11da5796ce32a31855412bd092c0bcf"},
-    {file = "tensorflow-2.15.0-cp39-cp39-macosx_12_0_arm64.whl", hash = "sha256:896bda03f722700a9918d144aee5152a75f1be5e6c5045fd0683b8318a3fc9d9"},
-    {file = "tensorflow-2.15.0-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:e7697b005ce48fec8b2ee8cf25bcbd138f16b5e17f99f7c01a6ea3f2429f86c6"},
-    {file = "tensorflow-2.15.0-cp39-cp39-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:3fa865956d96b7614f247c36e4c22b1543ba5ce656fbe8e4f6266ae7a4917132"},
-    {file = "tensorflow-2.15.0-cp39-cp39-win_amd64.whl", hash = "sha256:01108746e1bbfcd48dfabf7f51ddca7693b91ea6821f6f62a27b5a5ebf0817c5"},
-]
-
-[package.dependencies]
-absl-py = ">=1.0.0"
-astunparse = ">=1.6.0"
-flatbuffers = ">=23.5.26"
-gast = ">=0.2.1,<0.5.0 || >0.5.0,<0.5.1 || >0.5.1,<0.5.2 || >0.5.2"
-google-pasta = ">=0.1.1"
-grpcio = ">=1.24.3,<2.0"
-h5py = ">=2.9.0"
-keras = ">=2.15.0,<2.16"
-libclang = ">=13.0.0"
-ml-dtypes = ">=0.2.0,<0.3.0"
-numpy = ">=1.23.5,<2.0.0"
-opt-einsum = ">=2.3.2"
-packaging = "*"
-protobuf = ">=3.20.3,<4.21.0 || >4.21.0,<4.21.1 || >4.21.1,<4.21.2 || >4.21.2,<4.21.3 || >4.21.3,<4.21.4 || >4.21.4,<4.21.5 || >4.21.5,<5.0.0dev"
-setuptools = "*"
-six = ">=1.12.0"
-tensorboard = ">=2.15,<2.16"
-tensorflow-estimator = ">=2.15.0,<2.16"
-tensorflow-io-gcs-filesystem = ">=0.23.1"
-termcolor = ">=1.1.0"
-typing-extensions = ">=3.6.6"
-wrapt = ">=1.11.0,<1.15"
-
-[package.extras]
-and-cuda = ["nvidia-cublas-cu12 (==12.2.5.6)", "nvidia-cuda-cupti-cu12 (==12.2.142)", "nvidia-cuda-nvcc-cu12 (==12.2.140)", "nvidia-cuda-nvrtc-cu12 (==12.2.140)", "nvidia-cuda-runtime-cu12 (==12.2.140)", "nvidia-cudnn-cu12 (==8.9.4.25)", "nvidia-cufft-cu12 (==11.0.8.103)", "nvidia-curand-cu12 (==10.3.3.141)", "nvidia-cusolver-cu12 (==11.5.2.141)", "nvidia-cusparse-cu12 (==12.1.2.141)", "nvidia-nccl-cu12 (==2.16.5)", "nvidia-nvjitlink-cu12 (==12.2.140)", "tensorrt (==8.6.1.post1)", "tensorrt-bindings (==8.6.1)", "tensorrt-libs (==8.6.1)"]
 
 [[package]]
 name = "tensorflow-estimator"
@@ -1695,4 +1644,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.12"
-content-hash = "9f4bb2e5654994ccc1cdba40412c668ffffc6b447a821e79e8d628f5f4ed23e5"
+content-hash = "d37b5981ebc22ba24dc0e9d872be55a621c590c47259127a0e0c8aff65f6f522"

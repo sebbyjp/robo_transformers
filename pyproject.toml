@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "robo-transformers"
-version = "0.1.10"
+version = "0.1.13"
 description = "Robotics Transformer Inference in Tensorflow. RT-1, RT-2, RT-X, PALME."
 authors = ["Sebastian Peralta <peraltas@seas.upenn.edu>"]
 license = "MIT"
@@ -15,7 +15,7 @@ packages = [
 python = ">=3.9,<3.12"
 tensorflow-macos = { version = "^2.15.0", markers = "sys_platform == 'darwin'" }
 # tensorflow-metal= { version = "^1.1.0", markers = "sys_platform == 'darwin'" }
-tensorflow = "^2.15.0"
+tensorflow =  {version =  "^2.15.0", markers = "sys_platform != 'darwin'" }
 gdown = "^4.7.1"
 pillow = "^10.1.0"
 tensorflow-hub = "^0.15.0"
@@ -26,6 +26,7 @@ protobuf = ">=3.19.6,<4.24"
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.3"
 pytest-cov = "^4.1.0"
+
 
 [build-system]
 requires = ["poetry-core"]
