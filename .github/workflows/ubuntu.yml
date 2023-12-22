@@ -1,4 +1,4 @@
-name: ubuntu | python 3.9 | python 3.10 | python 3.11
+name: ubuntu | python 3.9 | 3.10 | 3.11
 
 on:
   push:
@@ -21,6 +21,7 @@ jobs:
         run: |
           pip install poetry
           poetry config virtualenvs.in-project true
+          rm -rf poetry.lock
           poetry install
           source .venv/bin/activate
-          PYTHONPATH=$PYTHONPATHPATH:. pytest tests/test_inference_server.py 
+          PYTHONPATH=$PYTHONPATHPATH:. python -m pytest tests/test_inference_server.py 
