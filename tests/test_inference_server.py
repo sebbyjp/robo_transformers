@@ -2,7 +2,7 @@ from robo_transformers.inference_server import InferenceServer
 from importlib.resources import files
 from PIL import Image
 import numpy as np
-demo_img = files("robotics_transformer").joinpath("demo_imgs/gripper_almost_grasp.png")
+demo_img = files("robo_transformers").joinpath("demo_imgs/gripper_almost_grasp.png")
 def test_pass_through():
     inference = InferenceServer(pass_through=True)
     img = np.array(Image.open(demo_img))
