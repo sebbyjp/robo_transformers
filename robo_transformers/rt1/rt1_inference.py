@@ -49,6 +49,11 @@ class LazyLoader:
         if self.module is None:
             self.module = hub.load(self.url)
         return getattr(self.module, name)
+    
+    def __call__(self, *args, **kwargs):
+        if self.module is None:
+            self.module = hub.load(self.url)
+        return self.module(*args, **kwargs)
 
 TEXT_ENCODER = LazyLoader("https://tfhub.dev/google/universal-sentence-encoder/4")
 
