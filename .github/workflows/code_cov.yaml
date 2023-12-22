@@ -14,7 +14,7 @@ jobs:
       - name: Run tests
         run: |
           pip install -r requirements.txt
-          PYTHONPATH=$PYTHONPATH:. python -m pytest --cov=rt1 --cov-report=xml tests.test_inference_server
+          PYTHONPATH=$PYTHONPATHPATH:. pytest --cov=rt1 --cov-report=xml  tests/test_inference_server.py 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
         env:
