@@ -5,9 +5,47 @@ from robo_transformers.rt1.rt1_inference import load_rt1, inference as rt1_infer
 from PIL import Image
 import numpy as np
 from typing import Optional
-WIDTH = 320
-HEIGHT = 256
+from pprint import pprint
+import tensorflow as tf
+from absl import logging
 
+def rescale_action_with_bound(
+    actions: tf.Tensor,
+    low: float,
+    high: float,
+    safety_margin: float = 0,
+    post_scaling_max: float = 1.0,
+    post_scaling_min: float = -1.0,
+) -> tf.Tensor:
+  """Formula taken from https://stats.stackexchange.com/questions/281162/scale-a-number-between-a-range."""
+#   resc_actions = (actions - low) / (high - low) * (
+#       post_scaling_max - post_scaling_min
+#   ) + post_scaling_min
+  return tf.clip_by_value(
+      actions,
+     low,
+   high,
+  )
+
+def rescale_action(action):
+  """Rescales action."""
+
+  action['world_vector'] = rescale_action_with_bound(
+      action['world_vector'],
+      low=-0.05,
+      high=0.05,
+      safety_margin=0.01,
+    #   post_scaling_max=1.75,
+    #   post_scaling_min=-1.75,
+  )
+  action['rotation_delta'] = rescale_action_with_bound(
+      action['rotation_delta'],
+      low=-0.25,
+      high=0.25,
+      safety_margin=0.01,
+    #   post_scaling_max=1.4,
+    #   post_scaling_min=-1.4,
+  )
 
 class InferenceServer:
 
@@ -36,8 +74,8 @@ class InferenceServer:
                  save: bool = False,
                  return_policy_state: bool = False) -> ps.ActionType:
         imgs = np.array(imgs, dtype=np.uint8)
-        imgs = np.array(
-                Image.fromarray(imgs).resize((WIDTH, HEIGHT)).convert('RGB'))
+        # imgs = np.array(
+        #         Image.fromarray(imgs).resize((WIDTH, HEIGHT)).convert('RGB'))
         # if (len(imgs.shape) not in [3, 4] or
         #     (len(imgs.shape) == 3 and
         #      (imgs.shape[0] != WIDTH or imgs.shape[1] != HEIGHT or
@@ -48,8 +86,7 @@ class InferenceServer:
         #     imgs = np.array(
         #         Image.fromarray(imgs).resize((WIDTH, HEIGHT)).convert('RGB'))
         if save:
-            imgs = Image.fromarray(imgs)
-            imgs.save("rt1_saved_img.png")
+            Image.fromarray(imgs).save("rt1_saved_img.png")
 
         if self.pass_through:
             return {
@@ -72,6 +109,10 @@ class InferenceServer:
                                          terminate)
             self.policy_state = state
             self.step += 1
+            if logging.level_debug():
+                print('before rescaling action')
+                pprint(action)
+            # rescale_action(action)
             action = {
                 'base_displacement_vector':
                     np.array(action['base_displacement_vector'], dtype=np.float32),
@@ -86,6 +127,8 @@ class InferenceServer:
                 'world_vector':
                     np.array(action['world_vector'], dtype=np.float32),
             }
+            pprint(action)
+
             if return_policy_state:
                 return action, self.policy_state
             else:
