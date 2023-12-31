@@ -40,7 +40,7 @@ flags.DEFINE_boolean('show', False,
 WIDTH = 320
 HEIGHT = 256
 
-class LazyLoader:
+class LazyTFModule:
     '''Lazy loads a tensorflow module.'''
     def __init__(self, url: str):
         self.url = url
@@ -56,7 +56,7 @@ class LazyLoader:
             self.module = hub.load(self.url)
         return self.module(*args, **kwargs)
 
-TEXT_ENCODER = LazyLoader("https://tfhub.dev/google/universal-sentence-encoder/4")
+TEXT_ENCODER = LazyTFModule("https://tfhub.dev/google/universal-sentence-encoder/4")
 
 def download_checkpoint(key: str, output: str = None):
     if key not in REGISTRY.keys():
@@ -230,7 +230,6 @@ def inference(
         time_step = ts.transition(observation, reward)
     
     action, next_state, info = policy.action(time_step, policy_state)
-
 
     if logging.level_debug():
         writer = tf.summary.create_file_writer("./runs")

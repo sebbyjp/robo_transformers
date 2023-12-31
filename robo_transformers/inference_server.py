@@ -2,57 +2,99 @@ from tf_agents.policies.py_policy import PyPolicy
 from tf_agents.policies.tf_policy import TFPolicy
 from tf_agents.trajectories import policy_step as ps
 from robo_transformers.rt1.rt1_inference import load_rt1, inference as rt1_inference
+from PIL import Image
 import numpy as np
-
+from typing import Optional
 WIDTH = 320
 HEIGHT = 256
+
+
 class InferenceServer:
 
     def __init__(self,
-                 model: PyPolicy | TFPolicy = None, pass_through: bool = False):
+                 model_key: str = "rt1main",
+                 model: Optional[PyPolicy | TFPolicy] = None,
+                 pass_through: bool = False):
         self.pass_through = pass_through
         if pass_through:
             return
-        self.model = model
-        if self.model is None:
-            self.model = load_rt1()
-
+    
         self.policy_state = None
         self.step = 0
+
+        self.model = model
+        if self.model is None:
+            self.model = load_rt1(model_key=model_key)
+
+ 
 
     def __call__(self,
                  instructions: list[str] | str,
                  imgs: list[np.ndarray] | np.ndarray,
                  reward: list[float] | float = None,
                  terminate: bool = False,
-                 save: bool = False) -> ps.ActionType:
-
+                 save: bool = False,
+                 return_policy_state: bool = False) -> ps.ActionType:
         imgs = np.array(imgs, dtype=np.uint8)
-        if (len(imgs.shape) not in [3, 4] or
-        (len(imgs.shape) == 3 and (imgs.shape[0] != WIDTH or imgs.shape[1] != HEIGHT or imgs.shape[2] != 3)) or
-            len(imgs.shape) == 4 and (imgs.shape[1] != WIDTH or imgs.shape[2] != HEIGHT or imgs.shape[3] != 3)):
-            from PIL import Image
-            imgs = np.array(Image.fromarray(imgs).resize((WIDTH, HEIGHT)).convert('RGB'))
+        imgs = np.array(
+                Image.fromarray(imgs).resize((WIDTH, HEIGHT)).convert('RGB'))
+        # if (len(imgs.shape) not in [3, 4] or
+        #     (len(imgs.shape) == 3 and
+        #      (imgs.shape[0] != WIDTH or imgs.shape[1] != HEIGHT or
+        #       imgs.shape[2] != 3)) or len(imgs.shape) == 4 and
+        #     (imgs.shape[1] != WIDTH or imgs.shape[2] != HEIGHT or
+        #      imgs.shape[3] != 3)):
+
+        #     imgs = np.array(
+        #         Image.fromarray(imgs).resize((WIDTH, HEIGHT)).convert('RGB'))
         if save:
-            imgs = Image.fromarray(imgs).resize((WIDTH, HEIGHT)).convert('RGB')
+            imgs = Image.fromarray(imgs)
             imgs.save("rt1_saved_img.png")
-        imgs = np.array(imgs)
-        
+
         if self.pass_through:
             return {
-                'base_displacement_vector': np.array([0.0, 0.0], dtype=np.float32),
-                'base_displacement_vertical_rotation': np.array([0.0], dtype=np.float32),
-                'gripper_closedness_action': np.array([0.0], dtype=np.float32),
-                'rotation_delta': np.array([0.0, 0.0, 0.0], dtype=np.float32),
-                'terminate_episode': np.array([0, 0, 0], dtype=np.int32),
-                'world_vector': np.array([0.0, 0.0, 0.0], dtype=np.float32),
+                'base_displacement_vector':
+                    np.array([0.0, 0.0], dtype=np.float32),
+                'base_displacement_vertical_rotation':
+                    np.array([0.0], dtype=np.float32),
+                'gripper_closedness_action':
+                    np.array([0.0], dtype=np.float32),
+                'rotation_delta':
+                    np.array([0.0, 0.0, 0.0], dtype=np.float32),
+                'terminate_episode':
+                    np.array([0, 0, 0], dtype=np.int32),
+                'world_vector':
+                    np.array([0.02, 0.00, -0.02], dtype=np.float32),
             }
-
-        action, state, _ = rt1_inference(instructions, imgs, self.step, reward,
-                            self.model, self.policy_state, terminate)
-        self.policy_state = state
-        self.step += 1
-        return action
+        try:
+            action, state, _ = rt1_inference(instructions, imgs, self.step, reward,
+                                         self.model, self.policy_state,
+                                         terminate)
+            self.policy_state = state
+            self.step += 1
+            action = {
+                'base_displacement_vector':
+                    np.array(action['base_displacement_vector'], dtype=np.float32),
+                'base_displacement_vertical_rotation':
+                    np.array(action['base_displacement_vertical_rotation'], dtype=np.float32),
+                'gripper_closedness_action':
+                    np.array(action['gripper_closedness_action'], dtype=np.float32),
+                'rotation_delta':
+                    np.array(action['rotation_delta'], dtype=np.float32),
+                'terminate_episode':
+                    np.array(action['terminate_episode'], dtype=np.int32),
+                'world_vector':
+                    np.array(action['world_vector'], dtype=np.float32),
+            }
+            if return_policy_state:
+                return action, self.policy_state
+            else:
+                return action
+        except Exception as e:
+            import traceback
+            traceback.print_tb(e.__traceback__)
+      
+  
 
 
 
