@@ -96,6 +96,6 @@ urllib3==2.1.0
 virtualenv==20.25.0
 Werkzeug==3.0.1
 wrapt==1.14.1
-xattr==0.10.1
+xattr==1.0.0
 zipp==3.17.0
 beartype==0.16.4
