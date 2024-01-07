@@ -3,7 +3,7 @@ astunparse==1.6.3
 beautifulsoup4==4.12.2
 build==1.0.3
 CacheControl==0.13.1
-cachetools==4.2.4
+cachetools==5.3.2
 certifi==2023.11.17
 cffi==1.16.0
 charset-normalizer==3.3.2
