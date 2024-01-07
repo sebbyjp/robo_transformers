@@ -219,21 +219,20 @@ def inference(
     if policy_state is None:
          # Run dummy inference to get the initial state.
         policy_state = policy.get_initial_state(batch_size)
-        time_step = ts.transition(observation, reward)
+        time_step = ts.transition(observation, np.zeros((batch_size,), dtype=np.float32))
         _, policy_state, _ = policy.action(time_step, policy_state)
 
     observation["image"] = format_images(imgs)
     observation['natural_language_embedding'] = embed_text(
         instructions, batch_size)
 
-    # if step == 0:
-    #     time_step = ts.restart(observation, batch_size)
-    # elif terminate:
-    #     time_step = ts.termination(observation, reward)
-    # else:
-    #     time_step = ts.transition(observation, reward)
+    if step == 0:
+        time_step = ts.restart(observation, batch_size)
+    elif terminate:
+        time_step = ts.termination(observation, reward)
+    else:
+        time_step = ts.transition(observation, reward)
 
-    time_step = ts.transition(observation, reward)
     action, next_state, info = policy.action(time_step, policy_state)
 
     if logging.level_debug():

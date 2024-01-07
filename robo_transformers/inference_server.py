@@ -7,14 +7,12 @@ import numpy as np
 from typing import Optional, TypedDict
 from pprint import pprint
 import tensorflow as tf
-import torch
 from absl import logging
 from dataclasses import dataclass, field, asdict, fields
-from collections.abc import Sequence
-from nptyping import NDArray, Shape, Float, Int
 from beartype import beartype
+from collections.abc import Sequence
 
-ArrayLike = NDArray | torch.Tensor | tf.Tensor | Sequence
+ArrayLike = np.ndarray | tf.Tensor | Sequence
 
 class RT1ActionDictT(TypedDict):
     base_displacement_vector: ArrayLike
@@ -68,6 +66,15 @@ class InferenceServer:
                  model_key: str = "rt1main",
                  model: Optional[PyPolicy | TFPolicy] = None,
                  dummy: bool = False):
+        '''Initializes the inference server.
+
+
+        Args:
+            model_key (str, optional): .Defaults to "rt1main".
+            model (Optional[PyPolicy  |  TFPolicy], optional): Pretrained policy to load. Defaults to None.
+            dummy (bool, optional): If true, a dummy action will be returned that inverts every call. Defaults to False.
+        '''
+
         self.dummy: bool = dummy
         self.policy_state: Optional[dict] = None
         self.step: int = 0
@@ -108,6 +115,8 @@ class InferenceServer:
         if isinstance(instructions, str):
             instructions = [instructions]
             images = [images]
+        if isinstance(reward, float):
+            reward = [reward]
         
         if not self.dummy:
             try:
