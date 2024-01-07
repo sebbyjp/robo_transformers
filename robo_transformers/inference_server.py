@@ -2,57 +2,144 @@ from tf_agents.policies.py_policy import PyPolicy
 from tf_agents.policies.tf_policy import TFPolicy
 from tf_agents.trajectories import policy_step as ps
 from robo_transformers.rt1.rt1_inference import load_rt1, inference as rt1_inference
+from PIL import Image
 import numpy as np
+from typing import Optional, TypedDict
+from pprint import pprint
+import tensorflow as tf
+from absl import logging
+from dataclasses import dataclass, field, asdict, fields
+from beartype import beartype
+from collections.abc import Sequence
 
-WIDTH = 320
-HEIGHT = 256
+ArrayLike = np.ndarray | tf.Tensor | Sequence
+
+class RT1ActionDictT(TypedDict):
+    base_displacement_vector: ArrayLike
+    base_displacement_vertical: ArrayLike
+    gripper_closedness_action: ArrayLike
+    rotation_delta: ArrayLike
+    terminate_episode: ArrayLike
+    world_vector: ArrayLike
+
+
+@beartype
+@dataclass
+class RT1Action:
+    base_displacement_vector: np.ndarray = field(default_factory= lambda: np.array([0.0, 0.0]))
+    base_displacement_vertical_rotation:  np.ndarray   = field(default_factory= lambda : np.array([0.0]))
+    gripper_closedness_action: np.ndarray  = field(default_factory= lambda : np.array([1.0]))
+    rotation_delta:  np.ndarray   = field(default_factory= lambda : np.array([0.0, 0.0, 0.0]))
+    terminate_episode: np.ndarray   = field(default_factory= lambda : np.array([0,0,0]))
+    world_vector:  np.ndarray  = field(default_factory= lambda : np.array([0.0, 0.0, 0.02]))
+    
+    @classmethod
+    def from_dict(cls, d: dict):
+        return cls(**{k: np.squeeze(v.numpy(), axis=0) for k, v in d.items()})
+
+    def make(self) -> RT1ActionDictT:
+        return asdict(self)
+
+
+@beartype
+@dataclass
+class InvertingDummyAction(RT1Action):
+    '''Returns Dummy Action that inverts its action every call.
+    '''
+    def invert_(self):
+        for f in fields(self):
+            setattr(self, f.name, -getattr(self, f.name))
+
+    def __post_init__(self):
+        # First call will invert again.
+        self.invert_()
+
+    def make(self) -> RT1ActionDictT:
+        self.invert_()
+        return asdict(self)
+        
+
+@beartype
 class InferenceServer:
 
     def __init__(self,
-                 model: PyPolicy | TFPolicy = None, pass_through: bool = False):
-        self.pass_through = pass_through
-        if pass_through:
-            return
-        self.model = model
-        if self.model is None:
-            self.model = load_rt1()
+                 model_key: str = "rt1main",
+                 model: Optional[PyPolicy | TFPolicy] = None,
+                 dummy: bool = False):
+        '''Initializes the inference server.
 
-        self.policy_state = None
-        self.step = 0
+
+        Args:
+            model_key (str, optional): .Defaults to "rt1main".
+            model (Optional[PyPolicy  |  TFPolicy], optional): Pretrained policy to load. Defaults to None.
+            dummy (bool, optional): If true, a dummy action will be returned that inverts every call. Defaults to False.
+        '''
+
+        self.dummy: bool = dummy
+        self.policy_state: Optional[dict] = None
+        self.step: int = 0
+        self.model: PyPolicy | TFPolicy = model
+        self.action: RT1Action = RT1Action()
+
+        if dummy:
+            self.action = InvertingDummyAction()
+            return
+
+        if model is None:
+            self.model = load_rt1(model_key=model_key)
 
     def __call__(self,
-                 instructions: list[str] | str,
-                 imgs: list[np.ndarray] | np.ndarray,
-                 reward: list[float] | float = None,
-                 terminate: bool = False,
-                 save: bool = False) -> ps.ActionType:
+                 instructions: ArrayLike | str,
+                 images: ArrayLike,
+                 reward: Optional[ArrayLike | float] = None,
+                 save: bool = False,
+                 ) -> RT1ActionDictT:
+        '''Runs inference on RT-1.
 
-        imgs = np.array(imgs, dtype=np.uint8)
-        if (len(imgs.shape) not in [3, 4] or
-        (len(imgs.shape) == 3 and (imgs.shape[0] != WIDTH or imgs.shape[1] != HEIGHT or imgs.shape[2] != 3)) or
-            len(imgs.shape) == 4 and (imgs.shape[1] != WIDTH or imgs.shape[2] != HEIGHT or imgs.shape[3] != 3)):
-            from PIL import Image
-            imgs = np.array(Image.fromarray(imgs).resize((WIDTH, HEIGHT)).convert('RGB'))
+
+        Args:
+            instructions (list[str] | str): Natural language instruction
+            images (list[np.ndarray] | np.ndarray)
+            reward (Optional[list[float]  |  float], optional): Defaults to None.
+            save (bool, optional): _description_. Defaults to False.
+            translation_bounds (tuple[float, float], optional). Defaults to (-0.05, 0.05).
+            rotation_bounds (tuple[float, float], optional). Defaults to (-0.25, 0.25).
+
+        Returns:
+            dict: See RT1Action
+        '''
+        images = np.array(images, dtype=np.uint8)
         if save:
-            imgs = Image.fromarray(imgs).resize((WIDTH, HEIGHT)).convert('RGB')
-            imgs.save("rt1_saved_img.png")
-        imgs = np.array(imgs)
-        
-        if self.pass_through:
-            return {
-                'base_displacement_vector': np.array([0.0, 0.0], dtype=np.float32),
-                'base_displacement_vertical_rotation': np.array([0.0], dtype=np.float32),
-                'gripper_closedness_action': np.array([0.0], dtype=np.float32),
-                'rotation_delta': np.array([0.0, 0.0, 0.0], dtype=np.float32),
-                'terminate_episode': np.array([0, 0, 0], dtype=np.int32),
-                'world_vector': np.array([0.0, 0.0, 0.0], dtype=np.float32),
-            }
+            Image.fromarray(images).save("rt1_saved_image.png")
 
-        action, state, _ = rt1_inference(instructions, imgs, self.step, reward,
-                            self.model, self.policy_state, terminate)
-        self.policy_state = state
-        self.step += 1
-        return action
+        if isinstance(instructions, str):
+            instructions = [instructions]
+            images = [images]
+        if isinstance(reward, float):
+            reward = [reward]
+        
+        if not self.dummy:
+            try:
+                action, state, _ = rt1_inference(instructions, images, self.step,
+                                                reward, self.model,
+                                                self.policy_state)                          
+                self.policy_state = state
+                self.step += 1
+                self.action = RT1Action.from_dict(action)
+                
+
+                if logging.get_verbosity() > logging.DEBUG:
+                    print(f'instruction: {instructions}')
+                    pprint(action)
+
+            except Exception as e:
+                import traceback
+                traceback.print_tb(e.__traceback__)
+                raise e
+
+        return self.action.make()
+
+
 
 
 

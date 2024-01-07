@@ -24,4 +24,4 @@ jobs:
           rm -rf poetry.lock
           poetry install
           source .venv/bin/activate
-          PYTHONPATH=$PYTHONPATHPATH:. python -m pytest tests/test_inference_server.py 
+          python -m pytest tests/test_inference_server.py 

@@ -1,7 +1,4 @@
 test_imgs/
-checkpoints/gresearch_rt1*
-checkpoints/rt_1*
-checkpoints/trained_checkpoints*
 **/*__pycache__*
 **/*venv*
 .DS_Store
