@@ -11,6 +11,7 @@ python >= 3.9
 
 ### From Source
 
+If using a mac install tensorflow like: `pip install tensorflow-macos`
 Clone this repo:
 
 `git clone https://github.com/sebbyjp/robo_transformers.git`
