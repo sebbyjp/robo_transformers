@@ -1,4 +1,4 @@
-from robo_transformers.rt1.rt1_inference import run_demo, load_rt1
+from robo_transformers.models.rt1.inference import run_demo, load_rt1
 
 def test_rt1_policy_main():
     policy = load_rt1(model_key='rt1main')
