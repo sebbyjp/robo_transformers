@@ -18,6 +18,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: Set up Python ${{ matrix.python-version }}
         run: |
+          pip install --upgrade pip
           pip install -r requirements.txt
           pip install pytest
           python -m pytest tests/test_inference_server.py 

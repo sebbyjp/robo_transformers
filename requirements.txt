@@ -1,5 +1,4 @@
 octo @ git+https://github.com/sebbyjp/octo.git@073c383520c813d08466c9e8fdf35bac6394fcc0
-tensorflow
 gdown == 4.7.1
 pillow == 10.1.0
 tensorflow-hub == 0.15.0
