@@ -22,7 +22,7 @@ crashtest==0.4.1
 cryptography==41.0.7
 cycler==0.12.1
 decorator==4.4.2
-distlib==0.3.7
+distlib==0.3.8
 distrax==0.1.5
 dlimp @ git+https://github.com/kvablack/dlimp@d08da3852c149548aaa8551186d619d87375df08
 dm-tree==0.1.8
