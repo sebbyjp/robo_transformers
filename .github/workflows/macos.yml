@@ -1,4 +1,4 @@
-name: macos | python 3.9 | 3.10 | 3.11
+name: macos | python 3.11 | 3.10 | 3.9
 on:
   push:
     branches: [master]
@@ -11,7 +11,7 @@ jobs:
     strategy:
       matrix:
         python-version:
-          # - "3.9"
+          - "3.11"
           - "3.10"
     name: MacOS Python ${{ matrix.python-version }}
     steps:
