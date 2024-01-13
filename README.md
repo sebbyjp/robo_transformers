@@ -9,6 +9,16 @@
 Requirements:
 python >= 3.9
 
+### Install tensorflow version for your OS and Hardware
+
+See [Tensorflow](https://www.tensorflow.org/install)
+
+### Using Octo models
+
+Follow their [installation procedure](https://github.com/octo-models/octo).
+
+**Note**: You might not need conda if you are able to just clone their repo and run `pip install -e octo`.
+
 ### Recommended: Using PyPI
 
 `pip install robo-transformers`
@@ -33,13 +43,9 @@ Poetry has installed the dependencies in a virtualenv so we need to activate it.
 
 `source .venv/bin/activate`
 
-## Using Octo models
+## Run Octo inference on demo images
 
-Follow their [installation procedure](https://github.com/octo-models/octo).
-
-**Note**: You might not need conda if you are able to just clone their repo and run `pip install -e octo`.
-
-Run Octo inference on demo images: `python -m robo_transformers.demo`
+`python -m robo_transformers.demo`
   
 ## Run RT-1 Inference On Demo Images
 
