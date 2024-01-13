@@ -1,18 +1,20 @@
+# Library for Robotic Transformers. RT-1, RT-X-1, Octo
+
 [![Code Coverage](https://codecov.io/gh/sebbyjp/dgl_ros/branch/code_cov/graph/badge.svg?token=9225d677-c4f2-4607-a9dd-8c22446f13bc)](https://codecov.io/gh/sebbyjp/dgl_ros)
-[![ubuntu | python 3.9 | 3.10 | 3.11 ](https://github.com/sebbyjp/robo_transformers/actions/workflows/ubuntu.yml/badge.svg)](https://github.com/sebbyjp/robo_transformers/actions/workflows/ubuntu.yml)
+[![ubuntu | python 3.9 | 3.10 | 3.11](https://github.com/sebbyjp/robo_transformers/actions/workflows/ubuntu.yml/badge.svg)](https://github.com/sebbyjp/robo_transformers/actions/workflows/ubuntu.yml)
 [![macos | python 3.9 | 3.10 | 3.11](https://github.com/sebbyjp/robo_transformers/actions/workflows/macos.yml/badge.svg)](https://github.com/sebbyjp/robo_transformers/actions/workflows/macos.yml)
 
-# Library for Robotic Transformers. RT-1 and RT-X-1.
-
-## Installation:
+## Installation
 
 Requirements:
 python >= 3.9
 
 ### Recommended: Using PyPI
+
 `pip install robo-transformers`
 
 ### From Source
+
 Clone this repo:
 
 `git clone https://github.com/sebbyjp/robo_transformers.git`
@@ -23,25 +25,37 @@ Use poetry
 
 `pip install poetry && poetry config virtualenvs.in-project true`
 
-**Install dependencies**
+### Install dependencies
 
 `poetry install`
 
 Poetry has installed the dependencies in a virtualenv so we need to activate it.
 
 `source .venv/bin/activate`
-  
-## Run RT-1 Inference On Demo Images.
-`python -m robo_transformers.rt1.rt1_inference`
 
-## See usage:
+## Using Octo models
+
+Follow their [installation procedure](https://github.com/octo-models/octo).
+
+**Note**: You might not need conda if you are able to just clone their repo and run `pip install -e octo`.
+
+Run Octo inference on demo images: `python -m robo_transformers.demo`
+  
+## Run RT-1 Inference On Demo Images
+
+`python -m robo_transformers.models.rt1.inference`
+
+## See usage
+
 You can specify a custom checkpoint path or the model_keys for the three mentioned in the RT-1 paper as well as RT-X.
 
-`python -m robo_transformers.rt1.rt1_inference --help`
+`python -m robo_transformers.models.rt1.inference --help`
 
 ## Run Inference Server
-The inference server takes care of all the internal state so all you need to specify is an instruction and image. You may also pass in a reward and termination signal. Batching is also supported.
-```
+
+The inference server takes care of all the internal state so all you need to specify is an instruction and image. You may also pass in 
+
+```python
 from robo_transformers.inference_server import InferenceServer
 import numpy as np
 
@@ -54,21 +68,24 @@ inference = InferenceServer()
 action = inference(instruction, img)
 ```
 
-  
 ## Data Types
+
 `action, next_policy_state = model.act(time_step, curr_policy_state)`
-### policy state is internal state of network:
+
+### policy state is internal state of network
+
 In this case it is a 6-frame window of past observations,actions and the index in time.
-```
+
+```python
 {'action_tokens': ArraySpec(shape=(6, 11, 1, 1), dtype=dtype('int32'), name='action_tokens'),
  'image': ArraySpec(shape=(6, 256, 320, 3), dtype=dtype('uint8'), name='image'),
  'step_num': ArraySpec(shape=(1, 1, 1, 1), dtype=dtype('int32'), name='step_num'),
  't': ArraySpec(shape=(1, 1, 1, 1), dtype=dtype('int32'), name='t')}
  ```
 
+### time_step is the input from the environment
 
-### time_step is the input from the environment:
-```
+```python
 {'discount': BoundedArraySpec(shape=(), dtype=dtype('float32'), name='discount', minimum=0.0, maximum=1.0),
  'observation': {'base_pose_tool_reached': ArraySpec(shape=(7,), dtype=dtype('float32'), name='base_pose_tool_reached'),
                  'gripper_closed': ArraySpec(shape=(1,), dtype=dtype('float32'), name='gripper_closed'),
@@ -88,8 +105,9 @@ In this case it is a 6-frame window of past observations,actions and the index i
  'step_type': ArraySpec(shape=(), dtype=dtype('int32'), name='step_type')}
  ```
 
-### action:
-```
+### action
+
+```python
 {'base_displacement_vector': BoundedArraySpec(shape=(2,), dtype=dtype('float32'), name='base_displacement_vector', minimum=-1.0, maximum=1.0),
  'base_displacement_vertical_rotation': BoundedArraySpec(shape=(1,), dtype=dtype('float32'), name='base_displacement_vertical_rotation', minimum=-3.1415927410125732, maximum=3.1415927410125732),
  'gripper_closedness_action': BoundedArraySpec(shape=(1,), dtype=dtype('float32'), name='gripper_closedness_action', minimum=-1.0, maximum=1.0),
@@ -98,5 +116,6 @@ In this case it is a 6-frame window of past observations,actions and the index i
  'world_vector': BoundedArraySpec(shape=(3,), dtype=dtype('float32'), name='world_vector', minimum=-1.0, maximum=1.0)}
  ```
 
- ## TODO:
- - Render action, policy_state, observation specs in something prettier like pandas data frame.
+## TODO
+
+- Render action, policy_state, observation specs in something prettier like pandas data frame.

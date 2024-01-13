@@ -175,8 +175,8 @@ def inference(
     instructions: list[str] | str,
     imgs: list[np.ndarray] | np.ndarray,
     step: int,
-    reward: list[float] | float = None,
-    policy: LoadedPolicy = None,
+    reward: Optional[list[float] | float] = None,
+    policy: Optional[LoadedPolicy] = None,
     policy_state=Optional[types.NestedArray],
     terminate=False,
 ) -> tuple[ps.ActionType, types.NestedSpecTensorOrArray, types.NestedSpecTensorOrArray]:
@@ -335,7 +335,7 @@ if __name__ == "__main__":
         You can also pass in a custom instruction via the --instruction flag.
 
         To run the demo, use the following command:
-        python3 -m robo_transformers.rt1.rt1_inference --model_key=rt1simreal --instruction="pick block"
+        python3 -m robo_transformers.rt1.inference --model_key=rt1simreal --instruction="pick block"
         """
         )
     app.run(main)

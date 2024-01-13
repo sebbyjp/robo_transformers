@@ -1,6 +1,9 @@
 import os
+from octo.model.octo_model import OctoModel
 os.environ['TOKENIZERS_PARALLELISM'] = 'false'
 
+
+model = OctoModel.load_pretrained("hf://rail-berkeley/octo-small")
 
 from PIL import Image
 import requests
@@ -19,3 +22,4 @@ observation = {"image_primary": img, "pad_mask": np.array([[True]])}
 task = model.create_tasks(texts=["pick up the fork"])
 action = model.sample_actions(observation, task, rng=jax.random.PRNGKey(0))
 print(action)   # [batch, action_chunk, action_dim]
+print(model.get_pretty_spec())

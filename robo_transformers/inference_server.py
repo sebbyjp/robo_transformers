@@ -1,136 +1,97 @@
-from tf_agents.policies.py_policy import PyPolicy
-from tf_agents.policies.tf_policy import TFPolicy
-from tf_agents.trajectories import policy_step as ps
-from robo_transformers.rt1.rt1_inference import load_rt1, inference as rt1_inference
 from PIL import Image
 import numpy as np
-from typing import Optional, TypedDict
+from typing import Optional, TypeVar
 from pprint import pprint
-import tensorflow as tf
 from absl import logging
-from dataclasses import dataclass, field, asdict, fields
 from beartype import beartype
-from collections.abc import Sequence
+from dataclasses import asdict, fields
+from numpy.typing import ArrayLike
+from robo_transformers.registry import REGISTRY
+from robo_transformers.abstract.action import  Action
+from robo_transformers.abstract.agent import Agent
 
-ArrayLike = np.ndarray | tf.Tensor | Sequence
-
-class RT1ActionDictT(TypedDict):
-    base_displacement_vector: ArrayLike
-    base_displacement_vertical: ArrayLike
-    gripper_closedness_action: ArrayLike
-    rotation_delta: ArrayLike
-    terminate_episode: ArrayLike
-    world_vector: ArrayLike
-
+ActionT = TypeVar('ActionT', bound=Action)
 
 @beartype
-@dataclass
-class RT1Action:
-    base_displacement_vector: np.ndarray = field(default_factory= lambda: np.array([0.0, 0.0]))
-    base_displacement_vertical_rotation:  np.ndarray   = field(default_factory= lambda : np.array([0.0]))
-    gripper_closedness_action: np.ndarray  = field(default_factory= lambda : np.array([1.0]))
-    rotation_delta:  np.ndarray   = field(default_factory= lambda : np.array([0.0, 0.0, 0.0]))
-    terminate_episode: np.ndarray   = field(default_factory= lambda : np.array([0,0,0]))
-    world_vector:  np.ndarray  = field(default_factory= lambda : np.array([0.0, 0.0, 0.02]))
-    
-    @classmethod
-    def from_dict(cls, d: dict):
-        return cls(**{k: np.squeeze(v.numpy(), axis=0) for k, v in d.items()})
-
-    def make(self) -> RT1ActionDictT:
-        return asdict(self)
-
-
-@beartype
-@dataclass
-class InvertingDummyAction(RT1Action):
+class InvertingDummyAction:
     '''Returns Dummy Action that inverts its action every call.
     '''
+    def __init__(self, action: ActionT):
+        self.action: ActionT = action
+
     def invert_(self):
-        for f in fields(self):
-            setattr(self, f.name, -getattr(self, f.name))
+        for f in fields(self.action):
+            setattr(self.action, f.name, -getattr(self.action, f.name))
 
     def __post_init__(self):
         # First call will invert again.
         self.invert_()
 
-    def make(self) -> RT1ActionDictT:
+    def make(self) -> dict:
         self.invert_()
-        return asdict(self)
+        return asdict(self.action)
         
 
 @beartype
 class InferenceServer:
 
     def __init__(self,
-                 model_key: str = "rt1main",
-                 model: Optional[PyPolicy | TFPolicy] = None,
-                 dummy: bool = False):
+                 model_type: str = "rt1",
+                 weights_key: str = "rt1main",
+                 dummy: bool = False,
+                 agent: Optional[Agent] = None,
+                 **kwargs
+                 ):
         '''Initializes the inference server.
 
 
         Args:
-            model_key (str, optional): .Defaults to "rt1main".
-            model (Optional[PyPolicy  |  TFPolicy], optional): Pretrained policy to load. Defaults to None.
+            model_type (str, optional): Defaults to "rt1".
+            weights_key (str, optional): Defaults to "rt1main".
             dummy (bool, optional): If true, a dummy action will be returned that inverts every call. Defaults to False.
+            agent (VLA, optional): Custom agent that implements VLA interface. Defaults to None.
+            **kwargs: kwargs for custom agent initialization.
+
         '''
 
         self.dummy: bool = dummy
-        self.policy_state: Optional[dict] = None
-        self.step: int = 0
-        self.model: PyPolicy | TFPolicy = model
-        self.action: RT1Action = RT1Action()
 
         if dummy:
-            self.action = InvertingDummyAction()
+            self.action = InvertingDummyAction(REGISTRY[model_type]['action']())
             return
-
-        if model is None:
-            self.model = load_rt1(model_key=model_key)
+        elif agent is not None:
+            self.agent: Agent = agent
+        else:
+            self.agent: Agent = REGISTRY[model_type]['agent'](weights_key)
+            self.action = REGISTRY[model_type]['action']()
 
     def __call__(self,
-                 instructions: ArrayLike | str,
-                 images: ArrayLike,
-                 reward: Optional[ArrayLike | float] = None,
                  save: bool = False,
-                 ) -> RT1ActionDictT:
-        '''Runs inference on RT-1.
+                 **kwargs
+                 ) -> dict:
+        '''Runs inference on a Vision Language Action model.
 
 
         Args:
-            instructions (list[str] | str): Natural language instruction
-            images (list[np.ndarray] | np.ndarray)
-            reward (Optional[list[float]  |  float], optional): Defaults to None.
-            save (bool, optional): _description_. Defaults to False.
-            translation_bounds (tuple[float, float], optional). Defaults to (-0.05, 0.05).
-            rotation_bounds (tuple[float, float], optional). Defaults to (-0.25, 0.25).
+            save (bool, optional): Whether or not to save the observed image. Defaults to False.
+            *args: args for the agent.
+            **kwargs: kwargs for the agent.
 
         Returns:
-            dict: See RT1Action
+            dict: See RT1Action for details.
         '''
-        images = np.array(images, dtype=np.uint8)
-        if save:
-            Image.fromarray(images).save("rt1_saved_image.png")
+        image: ArrayLike = kwargs.get('image')
+        if image is not None and save:
+            Image.fromarray(np.array(image, dtype=np.uint8)).save("rt1_saved_image.png")
 
-        if isinstance(instructions, str):
-            instructions = [instructions]
-            images = [images]
-        if isinstance(reward, float):
-            reward = [reward]
-        
         if not self.dummy:
             try:
-                action, state, _ = rt1_inference(instructions, images, self.step,
-                                                reward, self.model,
-                                                self.policy_state)                          
-                self.policy_state = state
-                self.step += 1
-                self.action = RT1Action.from_dict(action)
-                
+                self.action = self.agent.act(**kwargs)
 
-                if logging.get_verbosity() > logging.DEBUG:
-                    print(f'instruction: {instructions}')
-                    pprint(action)
+                if logging.get_verbosity() > logging.DEBUG and kwargs.get('instruction') is not None:
+                    intruction = kwargs['instruction']
+                    print(f'instruction: {intruction}')
+                    pprint(self.action)
 
             except Exception as e:
                 import traceback
