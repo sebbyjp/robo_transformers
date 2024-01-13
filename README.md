@@ -35,7 +35,7 @@ You can specify a custom checkpoint path or the model_keys for the three mention
 
 ## Run Inference Server
 
-The inference server takes care of all the internal state so all you need to specify is an instruction and image. You may also pass in 
+The inference server takes care of all the internal state so all you need to specify is an instruction and image.
 
 ```python
 from robo_transformers.inference_server import InferenceServer
