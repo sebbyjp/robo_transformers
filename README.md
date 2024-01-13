@@ -1,8 +1,8 @@
 # Library for Robotic Transformers. RT-1, RT-X-1, Octo
 
 [![Code Coverage](https://codecov.io/gh/sebbyjp/dgl_ros/branch/code_cov/graph/badge.svg?token=9225d677-c4f2-4607-a9dd-8c22446f13bc)](https://codecov.io/gh/sebbyjp/dgl_ros)
-[![ubuntu | python 3.9 | 3.10 | 3.11](https://github.com/sebbyjp/robo_transformers/actions/workflows/ubuntu.yml/badge.svg)](https://github.com/sebbyjp/robo_transformers/actions/workflows/ubuntu.yml)
-[![macos | python 3.9 | 3.10 | 3.11](https://github.com/sebbyjp/robo_transformers/actions/workflows/macos.yml/badge.svg)](https://github.com/sebbyjp/robo_transformers/actions/workflows/macos.yml)
+[![ubuntu | python 3.11 | 3.10 | 3.9](https://github.com/sebbyjp/robo_transformers/actions/workflows/ubuntu.yml/badge.svg)](https://github.com/sebbyjp/robo_transformers/actions/workflows/ubuntu.yml)
+[![macos | python 3.11 | 3.10 | 3.9](https://github.com/sebbyjp/robo_transformers/actions/workflows/macos.yml/badge.svg)](https://github.com/sebbyjp/robo_transformers/actions/workflows/macos.yml)
 
 ## Installation
 
