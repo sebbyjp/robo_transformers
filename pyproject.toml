@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "robo-transformers"
-version = "0.1.13"
-description = "Robotics Transformer Inference in Tensorflow. RT-1, RT-2, RT-X, PALME."
+version = "1.0.0"
+description = "RT-1, RT-1-X, Octo Robotics Transformer Model Inference"
 authors = ["Sebastian Peralta <peraltas@seas.upenn.edu>"]
 license = "MIT"
 readme = "README.md"
@@ -23,6 +23,16 @@ tf-agents = "^0.19.0"
 importlib-resources = "^6.1.1"
 protobuf = ">=3.19.6,<4.24"
 beartype = "^0.16.4"
+pyyaml = "^6.0.1"
+lark = "^1.1.9"
+jax = "^0.4.23"
+jaxlib = "^0.4.23"
+opencv-python = "^4.9.0.80"
+flax = "^0.7.5"
+distrax = "^0.1.5"
+einops = "^0.7.0"
+huggingface-hub = "^0.20.2"
+transformers = "^4.36.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.3"
