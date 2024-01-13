@@ -20,6 +20,4 @@ jobs:
       - name: Set up Python ${{ matrix.python-version }}
         run: |
           pip install -r requirements.txt
-          git clone https://github.com/octo-models/octo
-          pip install -e octo
           python -m pytest tests/test_inference_server.py 
