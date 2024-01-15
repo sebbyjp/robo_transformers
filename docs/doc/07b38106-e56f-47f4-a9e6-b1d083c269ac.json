@@ -1,0 +1,10 @@
+{
+    "summary": "This code defines an abstract class called \"Agent\" for creating agents with internal state like history and past actions. The class has two required methods: a constructor \"__init__\" that can take arbitrary keyword arguments, and the \"act\" method which returns any type of output. This is marked as an Abstract Base Class (ABC) meaning it cannot be directly instantiated but must be subclassed by more specific classes.",
+    "details": [
+        {
+            "comment": "This code defines an abstract class called \"Agent\" for creating agents with internal state like history and past actions. The class has two required methods: a constructor \"__init__\" that can take arbitrary keyword arguments, and the \"act\" method which returns any type of output. This is marked as an Abstract Base Class (ABC) meaning it cannot be directly instantiated but must be subclassed by more specific classes.",
+            "location": "\"/media/root/Prima/works/robo_transformers/docs/src/robo_transformers/abstract/agent.py\":0-19",
+            "content": "from typing import Any\nfrom abc import ABC, abstractmethod\nfrom beartype import beartype\nimport numpy.typing as npt\n# -----------------------------------------------------------------------------\n@beartype\nclass Agent(ABC):\n    '''Abstract class for an agent. Internal state such as history and past actions is kept in this class.\n    '''\n    @abstractmethod\n    def __init__(self, **kwargs):\n        pass\n    @abstractmethod\n    def act(self, **kwargs) -> Any:\n        pass"
+        }
+    ]
+}

@@ -1,0 +1,539 @@
+{
+    "0": {
+        "file_id": 0,
+        "content": "/README.md",
+        "type": "filepath"
+    },
+    "1": {
+        "file_id": 0,
+        "content": "The code sets up the Robotic Transformers library, introduces a package for model inference, and defines data types/specifications for reinforcement learning models. It includes an action dictionary with specified actions and their attributes, and suggests rendering these specs in a prettier format.",
+        "type": "summary"
+    },
+    "2": {
+        "file_id": 0,
+        "content": "# Library for Robotic Transformers. RT-1, RT-X-1, Octo\n[![Code Coverage](https://codecov.io/gh/sebbyjp/dgl_ros/branch/code_cov/graph/badge.svg?token=9225d677-c4f2-4607-a9dd-8c22446f13bc)](https://codecov.io/gh/sebbyjp/dgl_ros)\n[![ubuntu | python 3.11 | 3.10 | 3.9](https://github.com/sebbyjp/robo_transformers/actions/workflows/ubuntu.yml/badge.svg)](https://github.com/sebbyjp/robo_transformers/actions/workflows/ubuntu.yml)\n[![macos | python 3.11 | 3.10 | 3.9](https://github.com/sebbyjp/robo_transformers/actions/workflows/macos.yml/badge.svg)](https://github.com/sebbyjp/robo_transformers/actions/workflows/macos.yml)\n## Installation\nRequirements:\npython >= 3.9\n### From Source\nClone this repo:\n`git clone https://github.com/sebbyjp/robo_transformers.git`\nInstall requirements:\n`python -m pip install --upgrade pip`\n`cd robo_transformers && pip install -r requirements.txt`\n## Run Octo inference on demo images\n`python -m robo_transformers.demo`\n## Run RT-1 Inference On Demo Images\n`python -m robo_transformers.models.rt1.inference`",
+        "type": "code",
+        "location": "/README.md:1-29"
+    },
+    "3": {
+        "file_id": 0,
+        "content": "This code provides instructions for installing and running Robotic Transformers library, specifically RT-1, RT-X-1, and Octo. It also shows badges for Code Coverage, Ubuntu and MacOS workflows. Requirements include python 3.9 or higher.",
+        "type": "comment"
+    },
+    "4": {
+        "file_id": 0,
+        "content": "## See usage\nYou can specify a custom checkpoint path or the model_keys for the three mentioned in the RT-1 paper as well as RT-X.\n`python -m robo_transformers.models.rt1.inference --help`\n## Run Inference Server\nThe inference server takes care of all the internal state so all you need to specify is an instruction and image.\n```python\nfrom robo_transformers.inference_server import InferenceServer\nimport numpy as np\n# Somewhere in your robot control stack code...\ninstruction = \"pick block\"\nimg = np.random.randn(256, 320, 3) # Width, Height, RGB\ninference = InferenceServer()\naction = inference(instruction, img)\n```\n## Data Types\n`action, next_policy_state = model.act(time_step, curr_policy_state)`\n### policy state is internal state of network\nIn this case it is a 6-frame window of past observations,actions and the index in time.\n```python\n{'action_tokens': ArraySpec(shape=(6, 11, 1, 1), dtype=dtype('int32'), name='action_tokens'),\n 'image': ArraySpec(shape=(6, 256, 320, 3), dtype=dtype('uint8'), name='image'),",
+        "type": "code",
+        "location": "/README.md:31-64"
+    },
+    "5": {
+        "file_id": 0,
+        "content": "This code snippet introduces a package called \"robo_transformers\" that provides inference functionality for robot transformer models. The README explains how to run inference, usage instructions, and data types involved. It mentions the use of an InferenceServer class, specifying an instruction and image, and returning an action.",
+        "type": "comment"
+    },
+    "6": {
+        "file_id": 0,
+        "content": " 'step_num': ArraySpec(shape=(1, 1, 1, 1), dtype=dtype('int32'), name='step_num'),\n 't': ArraySpec(shape=(1, 1, 1, 1), dtype=dtype('int32'), name='t')}\n ```\n### time_step is the input from the environment\n```python\n{'discount': BoundedArraySpec(shape=(), dtype=dtype('float32'), name='discount', minimum=0.0, maximum=1.0),\n 'observation': {'base_pose_tool_reached': ArraySpec(shape=(7,), dtype=dtype('float32'), name='base_pose_tool_reached'),\n                 'gripper_closed': ArraySpec(shape=(1,), dtype=dtype('float32'), name='gripper_closed'),\n                 'gripper_closedness_commanded': ArraySpec(shape=(1,), dtype=dtype('float32'), name='gripper_closedness_commanded'),\n                 'height_to_bottom': ArraySpec(shape=(1,), dtype=dtype('float32'), name='height_to_bottom'),\n                 'image': ArraySpec(shape=(256, 320, 3), dtype=dtype('uint8'), name='image'),\n                 'natural_language_embedding': ArraySpec(shape=(512,), dtype=dtype('float32'), name='natural_language_embedding'),",
+        "type": "code",
+        "location": "/README.md:65-78"
+    },
+    "7": {
+        "file_id": 0,
+        "content": "The code defines the structure of a dictionary that stores various inputs and parameters for the robot. 'step_num' and 't' are both 1D arrays of type int32, and 'discount', 'observation', etc., are also defined as different types of data structures. The observation contains multiple elements such as base_pose_tool_reached, gripper_closed, and natural_language_embedding, each having a specific shape and data type. Time step is the input from the environment that the robot receives and processes to take its actions.",
+        "type": "comment"
+    },
+    "8": {
+        "file_id": 0,
+        "content": "                 'natural_language_instruction': ArraySpec(shape=(), dtype=dtype('O'), name='natural_language_instruction'),\n                 'orientation_box': ArraySpec(shape=(2, 3), dtype=dtype('float32'), name='orientation_box'),\n                 'orientation_start': ArraySpec(shape=(4,), dtype=dtype('float32'), name='orientation_in_camera_space'),\n                 'robot_orientation_positions_box': ArraySpec(shape=(3, 3), dtype=dtype('float32'), name='robot_orientation_positions_box'),\n                 'rotation_delta_to_go': ArraySpec(shape=(3,), dtype=dtype('float32'), name='rotation_delta_to_go'),\n                 'src_rotation': ArraySpec(shape=(4,), dtype=dtype('float32'), name='transform_camera_robot'),\n                 'vector_to_go': ArraySpec(shape=(3,), dtype=dtype('float32'), name='vector_to_go'),\n                 'workspace_bounds': ArraySpec(shape=(3, 3), dtype=dtype('float32'), name='workspace_bounds')},\n 'reward': ArraySpec(shape=(), dtype=dtype('float32'), name='reward'),\n 'step_type': ArraySpec(shape=(), dtype=dtype('int32'), name='step_type')}",
+        "type": "code",
+        "location": "/README.md:79-88"
+    },
+    "9": {
+        "file_id": 0,
+        "content": "This code defines the data types and their specifications for a reinforcement learning model. It includes various arrays for different variables such as 'natural_language_instruction', 'orientation_box', 'rotation_delta_to_go', etc., with their respective shapes, data types, and names. The 'reward' and 'step_type' are also specified as single-element arrays of float32 and int32 respectively.",
+        "type": "comment"
+    },
+    "10": {
+        "file_id": 0,
+        "content": " ```\n### action\n```python\n{'base_displacement_vector': BoundedArraySpec(shape=(2,), dtype=dtype('float32'), name='base_displacement_vector', minimum=-1.0, maximum=1.0),\n 'base_displacement_vertical_rotation': BoundedArraySpec(shape=(1,), dtype=dtype('float32'), name='base_displacement_vertical_rotation', minimum=-3.1415927410125732, maximum=3.1415927410125732),\n 'gripper_closedness_action': BoundedArraySpec(shape=(1,), dtype=dtype('float32'), name='gripper_closedness_action', minimum=-1.0, maximum=1.0),\n 'rotation_delta': BoundedArraySpec(shape=(3,), dtype=dtype('float32'), name='rotation_delta', minimum=-1.5707963705062866, maximum=1.5707963705062866),\n 'terminate_episode': BoundedArraySpec(shape=(3,), dtype=dtype('int32'), name='terminate_episode', minimum=0, maximum=1),\n 'world_vector': BoundedArraySpec(shape=(3,), dtype=dtype('float32'), name='world_vector', minimum=-1.0, maximum=1.0)}\n ```\n## TODO\n- Render action, policy_state, observation specs in something prettier like pandas data frame.",
+        "type": "code",
+        "location": "/README.md:89-104"
+    },
+    "11": {
+        "file_id": 0,
+        "content": "The code defines a dictionary containing various action specifications, such as base displacement vector, gripper closedness action, rotation delta, terminate episode, and world vector. These specifications have bounded arrays with defined shapes, data types, names, and minimum/maximum values. The TODO suggests rendering these action, policy state, and observation specs in a prettier format like a pandas data frame.",
+        "type": "comment"
+    },
+    "12": {
+        "file_id": 1,
+        "content": "/pyproject.toml",
+        "type": "filepath"
+    },
+    "13": {
+        "file_id": 1,
+        "content": "This code is a Python project configuration using the Poetry package manager. It specifies the project name, version, description, authors, license, packages to include, and dependencies. The project depends on TensorFlow, gdown, pillow, tensorflow-hub, tf-agents, importlib-resources, protobuf, octo (from a GitHub repository), beartype, pyyaml, lark, and Jinja2. It also has dev dependencies for testing with Pytest and code coverage using pytest-cov.",
+        "type": "summary"
+    },
+    "14": {
+        "file_id": 1,
+        "content": "[tool.poetry]\nname = \"robo-transformers\"\nversion = \"0.2.0\"\ndescription = \"RT-1, RT-1-X, Octo Robotics Transformer Model Inference\"\nauthors = [\"Sebastian Peralta <peraltas@seas.upenn.edu>\"]\nlicense = \"MIT\"\nreadme = \"README.md\"\npackages = [\n    { include = \"robo_transformers\"  },\n    { include = \"robo_transformers/**/*.py\" },\n]\n[tool.poetry.dependencies]\npython = \">=3.9,<3.12\"\n# tensorflow-macos = { version = \"^2.15.0\", markers = \"sys_platform == 'darwin'\" }\n# tensorflow-metal= { version = \"^1.1.0\", markers = \"sys_platform == 'darwin'\" }\ntensorflow = \"^2.15.0\"\ngdown = \"^4.7.1\"\npillow = \"^10.1.0\"\ntensorflow-hub = \"^0.15.0\"\ntf-agents = \"^0.19.0\"\nimportlib-resources = \"^6.1.1\"\nprotobuf = \">=3.19.6,<4.24\"\nocto = {git = \"https://github.com/sebbyjp/octo.git\", rev = \"073c383520c813d08466c9e8fdf35bac6394fcc0\"}\nbeartype = \"^0.16.4\"\npyyaml = \"^6.0.1\"\nlark = \"^1.1.9\"\njinja2 = \"^3.1.3\"\n[tool.poetry.group.dev.dependencies]\npytest = \"^7.4.3\"\npytest-cov = \"^4.1.0\"\n[build-system]\nrequires = [\"poetry-core\"]\nbuild-backend = \"poetry.core.masonry.api\"",
+        "type": "code",
+        "location": "/pyproject.toml:1-41"
+    },
+    "15": {
+        "file_id": 1,
+        "content": "This code is a Python project configuration using the Poetry package manager. It specifies the project name, version, description, authors, license, packages to include, and dependencies. The project depends on TensorFlow, gdown, pillow, tensorflow-hub, tf-agents, importlib-resources, protobuf, octo (from a GitHub repository), beartype, pyyaml, lark, and Jinja2. It also has dev dependencies for testing with Pytest and code coverage using pytest-cov.",
+        "type": "comment"
+    },
+    "16": {
+        "file_id": 2,
+        "content": "/requirements.txt",
+        "type": "filepath"
+    },
+    "17": {
+        "file_id": 2,
+        "content": "This code snippet lists the required Python libraries and their respective versions for a project, ensuring compatibility between different software components. Libraries include TensorFlow, tensorflow-hub, tf-agents, importlib-resources, protobuf, beartype, pyyaml, lark, pillow, jinja2, typeguard, array-record, and octo (from GitHub).",
+        "type": "summary"
+    },
+    "18": {
+        "file_id": 2,
+        "content": "tensorflow == 2.15.0\ngdown == 4.7.1\npillow == 10.1.0\ntensorflow-hub == 0.15.0\ntf-agents == 0.19.0\nimportlib-resources == 6.1.1\nprotobuf ==4.23.4\nbeartype == 0.16.4\npyyaml == 6.0.1\nlark == 1.1.9\npillow == 10.1.0\njinja2 == 3.1.3\ntypeguard\narray-record\nocto @ git+https://github.com/sebbyjp/octo.git@peralta",
+        "type": "code",
+        "location": "/requirements.txt:1-15"
+    },
+    "19": {
+        "file_id": 2,
+        "content": "This code snippet lists the required Python libraries and their respective versions for a project, ensuring compatibility between different software components. Libraries include TensorFlow, tensorflow-hub, tf-agents, importlib-resources, protobuf, beartype, pyyaml, lark, pillow, jinja2, typeguard, array-record, and octo (from GitHub).",
+        "type": "comment"
+    },
+    "20": {
+        "file_id": 3,
+        "content": "/robo_transformers/abstract/action.py",
+        "type": "filepath"
+    },
+    "21": {
+        "file_id": 3,
+        "content": "This code defines an abstract class \"Action\" with a class method \"from_numpy_dict\" and a method \"make\". The class method creates an instance of the class from a dictionary where values are numpy arrays. The method \"make\" returns the action as a dictionary. The class is decorated with \"beartype\" and defined using \"dataclasses\".",
+        "type": "summary"
+    },
+    "22": {
+        "file_id": 3,
+        "content": "from dataclasses import dataclass, asdict\nfrom beartype import beartype\nimport numpy as np\n@beartype\n@dataclass\nclass Action:\n    @classmethod\n    def from_numpy_dict(cls, d: dict):\n        return cls(**{k: np.squeeze(v.numpy(), axis=0) for k, v in d.items()})\n    def make(self) -> dict:\n        '''Return the action as a dictionary.\n        Returns:\n            dict: The action as a dictionary.\n        '''\n        return asdict(self)",
+        "type": "code",
+        "location": "/robo_transformers/abstract/action.py:1-19"
+    },
+    "23": {
+        "file_id": 3,
+        "content": "This code defines an abstract class \"Action\" with a class method \"from_numpy_dict\" and a method \"make\". The class method creates an instance of the class from a dictionary where values are numpy arrays. The method \"make\" returns the action as a dictionary. The class is decorated with \"beartype\" and defined using \"dataclasses\".",
+        "type": "comment"
+    },
+    "24": {
+        "file_id": 4,
+        "content": "/robo_transformers/abstract/agent.py",
+        "type": "filepath"
+    },
+    "25": {
+        "file_id": 4,
+        "content": "This code defines an abstract class called \"Agent\" for creating agents with internal state like history and past actions. The class has two required methods: a constructor \"__init__\" that can take arbitrary keyword arguments, and the \"act\" method which returns any type of output. This is marked as an Abstract Base Class (ABC) meaning it cannot be directly instantiated but must be subclassed by more specific classes.",
+        "type": "summary"
+    },
+    "26": {
+        "file_id": 4,
+        "content": "from typing import Any\nfrom abc import ABC, abstractmethod\nfrom beartype import beartype\nimport numpy.typing as npt\n# -----------------------------------------------------------------------------\n@beartype\nclass Agent(ABC):\n    '''Abstract class for an agent. Internal state such as history and past actions is kept in this class.\n    '''\n    @abstractmethod\n    def __init__(self, **kwargs):\n        pass\n    @abstractmethod\n    def act(self, **kwargs) -> Any:\n        pass",
+        "type": "code",
+        "location": "/robo_transformers/abstract/agent.py:1-20"
+    },
+    "27": {
+        "file_id": 4,
+        "content": "This code defines an abstract class called \"Agent\" for creating agents with internal state like history and past actions. The class has two required methods: a constructor \"__init__\" that can take arbitrary keyword arguments, and the \"act\" method which returns any type of output. This is marked as an Abstract Base Class (ABC) meaning it cannot be directly instantiated but must be subclassed by more specific classes.",
+        "type": "comment"
+    },
+    "28": {
+        "file_id": 5,
+        "content": "/robo_transformers/demo.py",
+        "type": "filepath"
+    },
+    "29": {
+        "file_id": 5,
+        "content": "The code imports libraries, defines flags and functions for model types and demo instructions, reads images, logs information, performs inference using the agent's act method, defines a function for Octo model inference, prints output of three images to console, and initializes FLAGS for app.run().",
+        "type": "summary"
+    },
+    "30": {
+        "file_id": 5,
+        "content": "import tensorflow as tf\nimport numpy as np\nimport PIL.Image as Image\nfrom robo_transformers.registry import REGISTRY\nfrom importlib.resources import files\nfrom absl import logging, flags, app\nimport os\nimport sys\nfrom pprint import pprint\nfrom robo_transformers.abstract.agent import Agent\nfrom robo_transformers.abstract.action import Action\nFLAGS = flags.FLAGS\nflags.DEFINE_string(\n    \"demo_instruction\", \"pick up the block\", \"The instruction to run inference on.\"\n)\nflags.DEFINE_string(\n    \"model_type\",\n    \"octo\",\n    \"Which model to load. Must be one of: \" + str(REGISTRY.keys()),\n)\nflags.DEFINE_boolean(\"show_images\", False, \"Whether or not to show the demo images.\")\ndef get_demo_images(output=None) -> np.ndarray:\n    \"\"\"Loads a demo video from the directory.\n    Returns:\n        list[tf.Tensor]: A list of tensors of shape (batch_size, HEIGHT, WIDTH, 3).\n    \"\"\"\n    # Suppress noisy PIL warnings.\n    log_level = logging.get_verbosity()\n    if logging.get_verbosity() < 2:\n        logging.set_verbosity(logging.ERROR)",
+        "type": "code",
+        "location": "/robo_transformers/demo.py:1-37"
+    },
+    "31": {
+        "file_id": 5,
+        "content": "The code is importing necessary libraries, defining flags for different model types and demo instructions. It also defines a function to load demo images which suppresses noisy PIL warnings by changing the logging level temporarily. The main purpose seems to be running inference on given instructions using specified model type.",
+        "type": "comment"
+    },
+    "32": {
+        "file_id": 5,
+        "content": "    filenames = [\n        files(\"robo_transformers\").joinpath(\"demo_imgs/gripper_far_from_grasp.png\"),\n        files(\"robo_transformers\").joinpath(\"demo_imgs/gripper_mid_to_grasp.png\"),\n        files(\"robo_transformers\").joinpath(\"demo_imgs/gripper_almost_grasp.png\"),\n    ]\n    images = []\n    for fn in filenames:\n        img = Image.open(fn)\n        if FLAGS.show_images and output is not None:\n            img.save(os.path.join(output, fn.name))\n        img = np.array(img.convert(\"RGB\"))\n        images.append(img)\n    logging.set_verbosity(log_level)\n    return images\ndef run_demo(agent: Agent) -> list[Action]:\n    # Pass in an instruction through the --demo_instruction flag.\n    actions = []\n    images = get_demo_images(output=os.getcwd())\n    for step in range(3):\n        action = agent.act(\n            FLAGS.demo_instruction,\n            images[step],\n        )\n        pprint(action)\n        print(\" \")\n        actions.append(action)\n    return actions\ndef main(_):\n    if logging.level_debug():\n        tf.debugging.experimental.enable_dump_debug_info(",
+        "type": "code",
+        "location": "/robo_transformers/demo.py:39-74"
+    },
+    "33": {
+        "file_id": 5,
+        "content": "Code snippet creates a list of image file paths, reads the images and converts them to numpy arrays in RGB format. It then logs information with a specified log level, and returns the images. The `run_demo` function takes an Agent instance as input, fetches demo images, and performs actions for each image step based on the agent's act method. The main function enables debugging if logging is set to debug level.",
+        "type": "comment"
+    },
+    "34": {
+        "file_id": 5,
+        "content": "            \"./runs\", tensor_debug_mode=\"FULL_HEALTH\", circular_buffer_size=-1\n        )\n    # Run three time steps of inference using the demo images.\n    # Pass in an instruction via the command line.\n    agent: Agent = REGISTRY[FLAGS.model_type]['agent']()\n    run_demo(agent)\nif __name__ == \"__main__\":\n    if \"--help\" in sys.argv or \"-h\" in sys.argv:\n        print(\n            \"\"\"\n        Octo Inference Demo\n        -------------------\n        This demo runs inference on a pretrained Octo model.\n        The demo will run inference on three images from the demo_imgs directory\n        and print the output to the console.\n        You can also pass in a custom instruction via the --instruction flag.\n        To run the demo, use the following command:\n        python3 -m robo_transformers.demo --model_type=octo --instruction=\"pick block\"\n        \"\"\"\n        )\n    app.run(main)\nelse:\n    # TODO (speralta): Consider reading in flags from argv\n    # CAREFUL: This will crash if you allow flags from argv that haven't been",
+        "type": "code",
+        "location": "/robo_transformers/demo.py:75-104"
+    },
+    "35": {
+        "file_id": 5,
+        "content": "The code defines a function that runs inference on a pre-trained Octo model. It uses the \"run_demo\" function from the REGISTRY with the specified model type, and then prints the output of three images to the console. The \"--instruction\" flag can be used for custom input.",
+        "type": "comment"
+    },
+    "36": {
+        "file_id": 5,
+        "content": "    # defined.\n    # For now, only apps that use app.run() can set flags.\n    # Read in the program name\n    FLAGS(sys.argv[0:1])",
+        "type": "code",
+        "location": "/robo_transformers/demo.py:105-108"
+    },
+    "37": {
+        "file_id": 5,
+        "content": "The code snippet initializes the FLAGS using the program name as input. It appears to be a part of an application that uses app.run() and sets flags for it. The purpose might be to provide command-line arguments or configuration options.",
+        "type": "comment"
+    },
+    "38": {
+        "file_id": 6,
+        "content": "/robo_transformers/inference_server.py",
+        "type": "filepath"
+    },
+    "39": {
+        "file_id": 6,
+        "content": "The code includes two classes, performs inference on a Vision Language Action model, handles exceptions, and predicts grasps from point cloud data using a model. It applies sigmoid functions, selects successful grasps based on thresholds, and displays results if needed.",
+        "type": "summary"
+    },
+    "40": {
+        "file_id": 6,
+        "content": "from PIL import Image\nimport numpy as np\nfrom typing import Optional, TypeVar\nfrom pprint import pprint\nfrom absl import logging\nfrom beartype import beartype\nfrom dataclasses import asdict, fields\nfrom numpy.typing import ArrayLike\nfrom robo_transformers.registry import REGISTRY\nfrom robo_transformers.abstract.action import  Action\nfrom robo_transformers.abstract.agent import Agent\nActionT = TypeVar('ActionT', bound=Action)\n@beartype\nclass InvertingDummyAction:\n    '''Returns Dummy Action that inverts its action every call.\n    '''\n    def __init__(self, action: ActionT):\n        self.action: ActionT = action\n    def invert_(self):\n        for f in fields(self.action):\n            setattr(self.action, f.name, -getattr(self.action, f.name))\n    def __post_init__(self):\n        # First call will invert again.\n        self.invert_()\n    def make(self) -> dict:\n        self.invert_()\n        return asdict(self.action)\n@beartype\nclass InferenceServer:\n    def __init__(self,\n                 model_type: str = \"rt1\",\n                 weights_key: str = \"rt1main\",",
+        "type": "code",
+        "location": "/robo_transformers/inference_server.py:1-40"
+    },
+    "41": {
+        "file_id": 6,
+        "content": "This code defines a class InvertingDummyAction which returns an inverted action on each call, and the class InferenceServer for an inference server with model type and weight key options.",
+        "type": "comment"
+    },
+    "42": {
+        "file_id": 6,
+        "content": "                 dummy: bool = False,\n                 agent: Optional[Agent] = None,\n                 **kwargs\n                 ):\n        '''Initializes the inference server.\n        Args:\n            model_type (str, optional): Defaults to \"rt1\".\n            weights_key (str, optional): Defaults to \"rt1main\".\n            dummy (bool, optional): If true, a dummy action will be returned that inverts every call. Defaults to False.\n            agent (VLA, optional): Custom agent that implements VLA interface. Defaults to None.\n            **kwargs: kwargs for custom agent initialization.\n        '''\n        self.dummy: bool = dummy\n        if dummy:\n            self.action = InvertingDummyAction(REGISTRY[model_type]['action']())\n            return\n        elif agent is not None:\n            self.agent: Agent = agent\n        else:\n            self.agent: Agent = REGISTRY[model_type]['agent'](weights_key)\n            self.action = REGISTRY[model_type]['action']()\n    def __call__(self,\n                 save: bool = False,",
+        "type": "code",
+        "location": "/robo_transformers/inference_server.py:41-69"
+    },
+    "43": {
+        "file_id": 6,
+        "content": "Initializes the inference server with optional arguments for model type, weights key, dummy action, and custom agent. If a dummy action is specified, it returns an action that inverts every call. Otherwise, if a custom agent is provided, it uses that; otherwise, it initializes the agent based on the model type and weights key. The __call__ method is also defined but not explained in this chunk of code.",
+        "type": "comment"
+    },
+    "44": {
+        "file_id": 6,
+        "content": "                 **kwargs\n                 ) -> dict:\n        '''Runs inference on a Vision Language Action model.\n        Args:\n            save (bool, optional): Whether or not to save the observed image. Defaults to False.\n            *args: args for the agent.\n            **kwargs: kwargs for the agent.\n        Returns:\n            dict: See RT1Action for details.\n        '''\n        image: ArrayLike = kwargs.get('image')\n        if image is not None and save:\n            Image.fromarray(np.array(image, dtype=np.uint8)).save(\"rt1_saved_image.png\")\n        if not self.dummy:\n            try:\n                self.action = self.agent.act(**kwargs)\n                if logging.get_verbosity() > logging.DEBUG and kwargs.get('instruction') is not None:\n                    intruction = kwargs['instruction']\n                    print(f'instruction: {intruction}')\n                    pprint(self.action)\n            except Exception as e:\n                import traceback\n                traceback.print_tb(e.__traceback__)",
+        "type": "code",
+        "location": "/robo_transformers/inference_server.py:70-98"
+    },
+    "45": {
+        "file_id": 6,
+        "content": "This code snippet is responsible for running inference on a Vision Language Action model. It accepts optional arguments such as image, save, *args, and **kwargs. If an image is provided and the save flag is set to True, it saves the observed image. The agent's action is then retrieved by calling the act() method on the agent object with the provided kwargs. If logging verbosity is high and an instruction is present in the kwargs, it prints the instruction and the resulting action. If any exception occurs during this process, it prints the traceback.",
+        "type": "comment"
+    },
+    "46": {
+        "file_id": 6,
+        "content": "                raise e\n        return self.action.make()\n# class Rt1Observer(Observer):\n#     def observe(self, srcs: list[Src(PIL.Image), Src(str)]) -> Observation:\n#         pass\n# def inference(\n#     model: any,\n#     internal_state: dict,\n#     observation: dict,\n#     supervision: dict,\n#     config: dict,\n# ) -> dict:\n#     \"\"\"Infer action from observation.\n#     Args:\n#         cgn (CGN): ContactGraspNet model\n#         pcd (np.ndarray): point cloud\n#         threshold (float, optional): Success threshol. Defaults to 0.5.\n#         visualize (bool, optional): Whether or not to visualize output. Defaults to False.\n#         max_grasps (int, optional): Maximum grasps. Zero means unlimited. Defaults to 0.\n#         obj_mask (np.ndarray, optional): Object mask. Defaults to None.\n#     Returns:\n#         tuple[np.ndarray, np.ndarray, np.ndarray]: The grasps, confidence and indices of the points used for inference.\n#     \"\"\"\n# cgn.eval()\n# pcd = torch.Tensor(pcd).to(dtype=torch.float32).to(cgn.device)\n# if pcd.shape[0] > 20000:",
+        "type": "code",
+        "location": "/robo_transformers/inference_server.py:99-133"
+    },
+    "47": {
+        "file_id": 6,
+        "content": "This code snippet is part of the RoboTransformers project and contains a class `Rt1Observer` that observes data from various sources. The `inference` function takes multiple arguments such as model, internal state, observation, supervision, and configuration, and returns an output in form of a dictionary. The code then initializes a ContactGraspNet (CGN) model, processes point cloud data, and performs inference to generate grasps, confidence scores, and point indices. If the number of points in the processed data exceeds 20000, it raises an exception.",
+        "type": "comment"
+    },
+    "48": {
+        "file_id": 6,
+        "content": "#     downsample_idxs = np.array(random.sample(range(pcd.shape[0] - 1), 20000))\n# else:\n#     downsample_idxs = np.arange(pcd.shape[0])\n# pcd = pcd[downsample_idxs, :]\n# batch = torch.zeros(pcd.shape[0]).to(dtype=torch.int64).to(cgn.device)\n# fps_idxs = farthest_point_sample(pcd, batch, 2048 / pcd.shape[0])\n# if obj_mask is not None:\n#     obj_mask = torch.Tensor(obj_mask[downsample_idxs])\n#     obj_mask = obj_mask[fps_idxs]\n# else:\n#     obj_mask = torch.ones(fps_idxs.shape[0])\n# points, pred_grasps, confidence, pred_widths, _, _ = cgn(\n#     pcd[:, 3:],\n#     pcd_poses=pcd[:, :3],\n#     batch=batch,\n#     idxs=fps_idxs,\n#     gripper_depth=gripper_depth,\n#     gripper_width=gripper_width,\n# )\n# sig = torch.nn.Sigmoid()\n# confidence = sig(confidence)\n# confidence = confidence.reshape(-1)\n# pred_grasps = (\n#     torch.flatten(pred_grasps, start_dim=0, end_dim=1).detach().cpu().numpy()\n# )\n# confidence = (\n#     obj_mask.detach().cpu().numpy() * confidence.detach().cpu().numpy()\n# ).reshape(-1)\n# pred_widths = (\n#     torch.flatten(pred_widths, start_dim=0, end_dim=1).detach().cpu().numpy()",
+        "type": "code",
+        "location": "/robo_transformers/inference_server.py:134-167"
+    },
+    "49": {
+        "file_id": 6,
+        "content": "Code samples points, grasps, and widths predictions from a model given point cloud data and other parameters. It applies a sigmoid function to the confidence scores and reshapes them before extracting relevant results into numpy arrays for further use.",
+        "type": "comment"
+    },
+    "50": {
+        "file_id": 6,
+        "content": "# )\n# points = torch.flatten(points, start_dim=0, end_dim=1).detach().cpu().numpy()\n# success_mask = (confidence > threshold).nonzero()[0]\n# if len(success_mask) == 0:\n#     print(\"failed to find successful grasps\")\n#     return None, None, None\n# success_grasps = pred_grasps[success_mask]\n# success_confidence = confidence[success_mask]\n# print(\"Found {} grasps\".format(success_grasps.shape[0]))\n# if max_grasps > 0 and success_grasps.shape[0] > max_grasps:\n#     success_grasps = success_grasps[:max_grasps]\n#     success_confidence = success_confidence[:max_grasps]\n# if visualize:\n#     visualize_grasps(\n#         pcd.detach().cpu().numpy(),\n#         success_grasps,\n#         gripper_depth=gripper_depth,\n#         gripper_width=gripper_width,\n#     )\n# return success_grasps, success_confidence, downsample_idxs",
+        "type": "code",
+        "location": "/robo_transformers/inference_server.py:168-189"
+    },
+    "51": {
+        "file_id": 6,
+        "content": "The code segment is responsible for selecting successful grasps based on confidence threshold. It first converts the points to CPU numpy array, then creates a success mask from confidence values above the threshold. If no successful grasps are found, it returns None. Grasps and corresponding confidences are extracted based on the success mask. If maximum number of grasps is specified, it truncates them. Finally, if visualization is enabled, it calls a function to display the grasps on a point cloud. The segment returns the successful grasps, their respective confidence scores, and optionally downsample indexes.",
+        "type": "comment"
+    },
+    "52": {
+        "file_id": 7,
+        "content": "/robo_transformers/models/octo/action.py",
+        "type": "filepath"
+    },
+    "53": {
+        "file_id": 7,
+        "content": "This code defines a class for representing octopus arm action data. It consists of x, y, z, yaw, pitch, roll, and grasp parameters as float values, with methods like `from_jax_array` to create objects from JAX arrays. The class inherits from the abstract `Action` class.",
+        "type": "summary"
+    },
+    "54": {
+        "file_id": 7,
+        "content": "from dataclasses import dataclass\nfrom beartype import beartype\nfrom robo_transformers.abstract.action import Action\nfrom typing import TypedDict\n@beartype\nclass OctoActionDictT(TypedDict):\n    x: float\n    y: float\n    z: float\n    yaw: float\n    pitch: float\n    roll: float\n    grasp: float\n@beartype\n@dataclass\nclass OctoAction(Action):\n    '''End effector pose deltas.\n    '''\n    x: float = 0.0\n    y: float = 0.0\n    z: float = 0.0\n    yaw: float = 0.0\n    pitch: float = 0.0\n    roll: float = 0.0\n    grasp: float = 0.0  # How much to open or close the gripper.\n    @classmethod\n    def from_jax_array(cls, jax_array):\n        return cls(*[float(x) for x in jax_array])",
+        "type": "code",
+        "location": "/robo_transformers/models/octo/action.py:1-35"
+    },
+    "55": {
+        "file_id": 7,
+        "content": "This code defines a class for representing octopus arm action data. It consists of x, y, z, yaw, pitch, roll, and grasp parameters as float values, with methods like `from_jax_array` to create objects from JAX arrays. The class inherits from the abstract `Action` class.",
+        "type": "comment"
+    },
+    "56": {
+        "file_id": 8,
+        "content": "/robo_transformers/models/octo/agent.py",
+        "type": "filepath"
+    },
+    "57": {
+        "file_id": 8,
+        "content": "The OctoAgent class inherits from Agent, initializes an OctoModel and two lists. The act method processes inputs, creates tasks, samples normalized actions, populates image history, and returns a RT1Action using calculated normalized action.",
+        "type": "summary"
+    },
+    "58": {
+        "file_id": 8,
+        "content": "from robo_transformers.abstract.agent import Agent\nfrom robo_transformers.models.octo.action import OctoAction\nfrom robo_transformers.models.rt1.action import RT1Action\nfrom typing import Optional\nimport jax\nimport os\nimport cv2\nimport numpy as np\nimport numpy.typing as npt\nfrom octo.model.octo_model import OctoModel\nfrom beartype import beartype\nos.environ['TOKENIZERS_PARALLELISM'] = 'false'\n@beartype\nclass OctoAgent(Agent):\n    def __init__(self, weights_key: str = 'octo-small', window_size: int = 2) -> None:\n        self.model: OctoModel = OctoModel.load_pretrained(\"hf://rail-berkeley/\" + weights_key)\n        self.image_history = [] # Chronological order.\n        self.image_wrist_history = [] # Chronological order.    \n        self.window_size = window_size\n    def act(self, instruction: str, image: npt.ArrayLike, image_wrist: Optional[npt.ArrayLike] = None) -> RT1Action:\n        image = cv2.resize(np.array(image, dtype=np.uint8), (256, 256))\n        self.image_history.append(image)\n        if len(self.image_history) > self.window_size:",
+        "type": "code",
+        "location": "/robo_transformers/models/octo/agent.py:1-27"
+    },
+    "59": {
+        "file_id": 8,
+        "content": "The code defines a class called `OctoAgent` that inherits from the `Agent` abstract class. It initializes an instance of the `OctoModel` and two lists to store image history and wrist images, both in chronological order. The `act` method takes an instruction, image, and optional image_wrist as input, and returns a `RT1Action`. The code also resizes the input image and removes old elements from the image history if the window size is exceeded.",
+        "type": "comment"
+    },
+    "60": {
+        "file_id": 8,
+        "content": "            self.image_history.pop(0)\n        images = np.stack(self.image_history)[None]\n        np.expand_dims(images, axis=0)\n        observation = {\"image_primary\": images, \"pad_mask\": np.full((1, images.shape[1]), True, dtype=bool)}\n        if image_wrist is not None:\n            image_wrist = cv2.resize(np.array(image_wrist, dtype=np.uint8), (128, 128))\n            self.image_wrist_history.append(image_wrist)\n            if len(self.image_wrist_history) > self.window_size:\n                self.image_wrist_history.pop(0)\n            image_wrists = np.stack(self.image_wrist_history)[None]\n            np.expand_dims(image_wrists, axis=0)\n            observation[\"image_wrist\"] = image_wrists\n        task = self.model.create_tasks(texts=[instruction])\n      # this returns *normalized* actions --> we need to unnormalize using the dataset statistics\n        norm_actions = self.model.sample_actions(observation, task, rng=jax.random.PRNGKey(0))\n        norm_actions = norm_actions[0]   # remove batch\n        actions = (",
+        "type": "code",
+        "location": "/robo_transformers/models/octo/agent.py:28-48"
+    },
+    "61": {
+        "file_id": 8,
+        "content": "Code snippet populates the image history and wrist image history, normalizes actions using model statistics and stores them in 'norm_actions'. The 'observation' dictionary includes primary image and pad mask. If wrist image is not None, it resizes, appends to history and adds wrist image to observation. 'model.create_tasks()' creates tasks from input instruction and 'model.sample_actions()' samples normalized actions for given observation and task.",
+        "type": "comment"
+    },
+    "62": {
+        "file_id": 8,
+        "content": "            norm_actions *self. model.dataset_statistics[\"bridge_dataset\"]['action']['std']\n            + self.model.dataset_statistics[\"bridge_dataset\"]['action']['mean']\n        )\n        action = np.array(actions[0]).squeeze()\n        #   action = np.sum(np.array(actions), axis = 0).squeeze()\n        rt1_action = RT1Action(world_vector=action[0:3], rotation_delta=np.array([action[5], action[4], action[3]]), gripper_closedness_action=np.array(action[6]))\n        return rt1_action",
+        "type": "code",
+        "location": "/robo_transformers/models/octo/agent.py:49-56"
+    },
+    "63": {
+        "file_id": 8,
+        "content": "This code calculates the normalized action by subtracting the mean and dividing by the standard deviation from the dataset's statistics, then creates an RT1Action object using the calculated action values.",
+        "type": "comment"
+    },
+    "64": {
+        "file_id": 9,
+        "content": "/robo_transformers/models/octo/inference.py",
+        "type": "filepath"
+    },
+    "65": {
+        "file_id": 9,
+        "content": "The code imports necessary libraries, sets an environment variable for parallelism, loads a pretrained Octo model, downloads and processes an image, creates observation and task dictionaries, runs inference using the model, and prints the resulting action and model specifications.",
+        "type": "summary"
+    },
+    "66": {
+        "file_id": 9,
+        "content": "import os\nfrom octo.model.octo_model import OctoModel\nos.environ['TOKENIZERS_PARALLELISM'] = 'false'\nmodel = OctoModel.load_pretrained(\"hf://rail-berkeley/octo-small\")\nfrom PIL import Image\nimport requests\nimport matplotlib.pyplot as plt\nimport numpy as np\n# download one example BridgeV2 image\nIMAGE_URL = \"https://rail.eecs.berkeley.edu/datasets/bridge_release/raw/bridge_data_v2/datacol2_toykitchen7/drawer_pnp/01/2023-04-19_09-18-15/raw/traj_group0/traj0/images0/im_12.jpg\"\nimg = np.array(Image.open(requests.get(IMAGE_URL, stream=True).raw).resize((256, 256)))\nplt.imshow(img)\n# create obs & task dict, run inference\nimport jax\n# add batch + time horizon 1\nimg = img[np.newaxis,np.newaxis,...]\nobservation = {\"image_primary\": img, \"pad_mask\": np.array([[True]])}\ntask = model.create_tasks(texts=[\"pick up the fork\"])\naction = model.sample_actions(observation, task, rng=jax.random.PRNGKey(0))\nprint(action)   # [batch, action_chunk, action_dim]\nprint(model.get_pretty_spec())",
+        "type": "code",
+        "location": "/robo_transformers/models/octo/inference.py:1-25"
+    },
+    "67": {
+        "file_id": 9,
+        "content": "The code imports necessary libraries, sets an environment variable for parallelism, loads a pretrained Octo model, downloads and processes an image, creates observation and task dictionaries, runs inference using the model, and prints the resulting action and model specifications.",
+        "type": "comment"
+    },
+    "68": {
+        "file_id": 10,
+        "content": "/robo_transformers/models/rt1/action.py",
+        "type": "filepath"
+    },
+    "69": {
+        "file_id": 10,
+        "content": "The code defines a class RT1Action derived from Action, using numpy and beartype to create the dataclass RT1ActionDictT with various action parameters as fields. The world_vector field has a default factory function set to [0.0, 0.0, 0.02].",
+        "type": "summary"
+    },
+    "70": {
+        "file_id": 10,
+        "content": "from dataclasses import dataclass, field\nfrom beartype import beartype\nimport numpy.typing as npt\nimport numpy as np\nfrom robo_transformers.abstract.action import Action\nimport numpy.typing as npt\nfrom typing import TypedDict\n@beartype\nclass RT1ActionDictT(TypedDict):\n    base_displacement_vector: npt.ArrayLike\n    base_displacement_vertical: npt.ArrayLike\n    gripper_closedness_action: npt.ArrayLike\n    rotation_delta: npt.ArrayLike\n    terminate_episode: npt.ArrayLike\n    world_vector: npt.ArrayLike\n@beartype\n@dataclass\nclass RT1Action(Action):\n    base_displacement_vector: np.ndarray = field(default_factory= lambda: np.array([0.0, 0.0]))\n    base_displacement_vertical_rotation:  np.ndarray   = field(default_factory= lambda : np.array([0.0]))\n    gripper_closedness_action: np.ndarray  = field(default_factory= lambda : np.array([1.0]))\n    rotation_delta:  np.ndarray   = field(default_factory= lambda : np.array([0.0, 0.0, 0.0]))\n    terminate_episode: np.ndarray   = field(default_factory= lambda : np.array([0,0,0]))",
+        "type": "code",
+        "location": "/robo_transformers/models/rt1/action.py:1-27"
+    },
+    "71": {
+        "file_id": 10,
+        "content": "The code defines a class RT1Action, which is derived from the base Action class. It uses numpy and beartype libraries to create a dataclass called RT1ActionDictT with various action parameters as fields. These parameters include base displacement vector, base displacement vertical, gripper closedness action, rotation delta, terminate episode, and world vector. Each field has default values defined using lambda functions, ensuring the object always has initialized values.",
+        "type": "comment"
+    },
+    "72": {
+        "file_id": 10,
+        "content": "    world_vector:  np.ndarray  = field(default_factory= lambda : np.array([0.0, 0.0, 0.02]))",
+        "type": "code",
+        "location": "/robo_transformers/models/rt1/action.py:28-28"
+    },
+    "73": {
+        "file_id": 10,
+        "content": "The code sets a default factory function for the \"world_vector\" field to create a numpy array with values [0.0, 0.0, 0.02]. This means that whenever a new instance of this class is created and no value is provided for \"world_vector\", it will automatically be set to this default value.",
+        "type": "comment"
+    },
+    "74": {
+        "file_id": 11,
+        "content": "/robo_transformers/models/rt1/agent.py",
+        "type": "filepath"
+    },
+    "75": {
+        "file_id": 11,
+        "content": "RT1Agent class is an agent for RT1 model, inheriting from Agent. It initializes the model and state variables upon instantiation. The act() method takes input image, instruction, reward, and model & policy states to generate action using inference function. Policy state and step number are updated after each call.",
+        "type": "summary"
+    },
+    "76": {
+        "file_id": 11,
+        "content": "from robo_transformers.abstract.agent import Agent\nfrom tf_agents.policies.py_policy import PyPolicy\nfrom tf_agents.policies.tf_policy import TFPolicy\nfrom robo_transformers.models.rt1.inference import load_rt1, inference\nfrom robo_transformers.models.rt1.action import RT1Action\nfrom typing import Optional\nimport numpy.typing as npt\nimport numpy as np\nfrom beartype import beartype\n# Agent for RT1\n@beartype\nclass RT1Agent(Agent):\n    def __init__(self, weights_key: str) -> None:\n        self.model: PyPolicy | TFPolicy = load_rt1(model_key=weights_key)\n        self.policy_state: Optional[dict]   = None\n        self.step_num: int = 0\n    def act(self, instruction: str, image: npt.ArrayLike, reward: float = 0.0) -> RT1Action:\n        image = np.array(image, dtype=np.uint8)\n        action, next_state, _ = inference(instruction, image, self.step_num, reward, self.model, self.policy_state)\n        self.step_num += 1\n        self.policy_state = next_state\n        return RT1Action.from_numpy_dict(action)",
+        "type": "code",
+        "location": "/robo_transformers/models/rt1/agent.py:1-26"
+    },
+    "77": {
+        "file_id": 11,
+        "content": "RT1Agent class is an agent for RT1 model, inheriting from Agent. It initializes the model and state variables upon instantiation. The act() method takes input image, instruction, reward, and model & policy states to generate action using inference function. Policy state and step number are updated after each call.",
+        "type": "comment"
+    },
+    "78": {
+        "file_id": 12,
+        "content": "/robo_transformers/models/rt1/inference.py",
+        "type": "filepath"
+    },
+    "79": {
+        "file_id": 12,
+        "content": "This code uses TensorFlow and PyTorch for machine learning, downloads checkpoints from a URL registry, and applies the Universal Sentence Encoder. It includes functions for image processing during model inference and defines a function to measure rotation delta and gripper closedness. The \"robo_transformers\" project's inference.py file also supports custom instructions via \"--instruction\".",
+        "type": "summary"
+    },
+    "80": {
+        "file_id": 12,
+        "content": "import tensorflow as tf\nimport numpy as np\nimport PIL.Image as Image\nimport tensorflow_hub as hub\nfrom tf_agents.policies.py_tf_eager_policy import (\n    SavedModelPyTFEagerPolicy as LoadedPolicy,\n)\nfrom tf_agents.trajectories import time_step as ts, policy_step as ps\nfrom tf_agents import specs\nfrom tf_agents.typing import types\nfrom importlib.resources import files\nfrom absl import logging, flags, app\nimport os\nimport gdown\nimport sys\nfrom pprint import pprint\nfrom typing import Optional\nREGISTRY = {\n    \"rt1main\": \"https://drive.google.com/drive/folders/1QG99Pidaw6L9XYv1qSmuip_qga9FRcEC?usp=drive_link\",\n    \"rt1simreal\": \"https://drive.google.com/drive/folders/1_nudHVmGuGUpGcrLlswg9O-aWy27Cjg0?usp=drive_link\",\n    \"rt1multirobot\": \"https://drive.google.com/drive/folders/1EWjKSnfvD-ANPTLxugpCVP5zU6ADy8km?usp=drive_link\",\n    \"rt1x\": \"https://drive.google.com/drive/folders/1LjTizUsqM88-5uHAIczTrObB3_z4OlgE?usp=drive_link\",\n    # 'xgresearch':\n    #     \"https://drive.google.com/drive/folders/185nP-a8z-1Pm6Zc3yU2qZ01hoszyYx51?usp=drive_link\"",
+        "type": "code",
+        "location": "/robo_transformers/models/rt1/inference.py:1-25"
+    },
+    "81": {
+        "file_id": 12,
+        "content": "The code imports necessary libraries and defines a registry of URLs for downloadable models. The codebase seems to involve machine learning or image processing tasks, using TensorFlow, PyTorch, and related packages. These models may be used for various tasks like object detection, classification, or prediction in different contexts such as robotics or research.",
+        "type": "comment"
+    },
+    "82": {
+        "file_id": 12,
+        "content": "}\nFLAGS = flags.FLAGS\nflags.DEFINE_string(\n    \"instruction\", \"pick up the block\", \"The instruction to run inference on.\"\n)\nflags.DEFINE_string(\n    \"model_key\",\n    \"rt1simreal\",\n    \"Which model to load. Must be one of: \" + str(REGISTRY.keys()),\n)\nflags.DEFINE_string(\n    \"checkpoint_path\", None, \"Custom checkpoint path. This overrides the model key.\"\n)\nflags.DEFINE_boolean(\"show\", False, \"Whether or not to show the demo images.\")\nWIDTH = 320\nHEIGHT = 256\nclass LazyTFModule:\n    \"\"\"Lazy loads a tensorflow module.\"\"\"\n    def __init__(self, url: str):\n        self.url = url\n        self.module = None\n    def __getattr__(self, name: str):\n        if self.module is None:\n            self.module = hub.load(self.url)\n        return getattr(self.module, name)\n    def __call__(self, *args, **kwargs):\n        if self.module is None:\n            self.module = hub.load(self.url)\n        return self.module(*args, **kwargs)\nTEXT_ENCODER = LazyTFModule(\n    \"https://tfhub.dev/google/universal-sentence-encoder-large/5\"\n)\ndef download_checkpoint(key: str, output: str = None):",
+        "type": "code",
+        "location": "/robo_transformers/models/rt1/inference.py:26-70"
+    },
+    "83": {
+        "file_id": 12,
+        "content": "The code defines command line flags for instruction, model key, checkpoint path and show option. It also defines a WIDTH and HEIGHT variables. The class LazyTFModule lazy loads a TensorFlow module and TEXT_ENCODER is an instance of this class which loads the Universal Sentence Encoder from TF Hub. There's also a function to download checkpoint specified by key or output file name.",
+        "type": "comment"
+    },
+    "84": {
+        "file_id": 12,
+        "content": "    if key not in REGISTRY.keys():\n        logging.fatal(\"Invalid model key. Must be one of: \", REGISTRY.keys())\n    if output is None:\n        downloads_folder = os.path.join(os.getcwd(), \"checkpoints/rt1/\")\n    else:\n        downloads_folder = output\n    output = os.path.join(downloads_folder, key)\n    if not os.path.exists(output):\n        logging.info(\"Downloading new model: \", key)\n        gdown.download_folder(\n            REGISTRY[key], output=downloads_folder, quiet=True, use_cookies=False\n        )\n    return output\ndef load_rt1(\n    model_key: str = \"rt1simreal\",\n    checkpoint_path: str = None,\n    load_specs_from_pbtxt: bool = True,\n    use_tf_function: bool = True,\n    batch_time_steps: bool = False,\n    downloads_folder: bool = None,\n) -> LoadedPolicy:\n    \"\"\"Loads a trained RT-1 model from a checkpoint.\n    Args:\n        model_key (str, optional):  Model to load.\n        checkpoint_path (str, optional): Custom checkpoint path.\n        load_specs_from_pbtxt (bool, optional): Load from the .pb file in the checkpoint dir. Defaults to True.",
+        "type": "code",
+        "location": "/robo_transformers/models/rt1/inference.py:71-101"
+    },
+    "85": {
+        "file_id": 12,
+        "content": "This code defines a function `load_rt1` that loads a trained RT-1 model from a checkpoint. It takes arguments for the model key, custom checkpoint path, whether to load from the .pb file in the checkpoint directory, whether to use tf functions, and whether to batch time steps. If the specified output path doesn't exist, it downloads the new model before loading it.",
+        "type": "comment"
+    },
+    "86": {
+        "file_id": 12,
+        "content": "        use_tf_function (bool, optional): Wraps function with optimized tf.Function to speed up inference. Defaults to True.\n        batch_time_steps (bool, optional): Whether to automatically add a batch dimension during inference. Defaults to False.\n    Returns:\n        tf_agents.polices.tf_policy.TFPolicy: A tf_agents policy object.\n    \"\"\"\n    # Suppress warnings from gdown and tensorflow.\n    log_level = logging.get_verbosity()\n    if log_level < 2:\n        logging.set_verbosity(logging.ERROR)\n    if checkpoint_path is None:\n        checkpoint_path = download_checkpoint(model_key, downloads_folder)\n    print(\"Loading RT-1 from checkpoint: {}...\".format(checkpoint_path))\n    policy: LoadedPolicy = LoadedPolicy(\n        model_path=checkpoint_path,\n        load_specs_from_pbtxt=load_specs_from_pbtxt,\n        use_tf_function=use_tf_function,\n        batch_time_steps=batch_time_steps,\n    )\n    print(\"RT-1 loaded.\")\n    logging.set_verbosity(log_level)\n    return policy\ndef embed_text(input: list[str] | str, batch_size: int = 1) -> tf.Tensor:",
+        "type": "code",
+        "location": "/robo_transformers/models/rt1/inference.py:102-130"
+    },
+    "87": {
+        "file_id": 12,
+        "content": "This function is for loading and returning a tf_agents policy object from the given checkpoint path. It also handles downloading the checkpoint if no path is provided, sets the logging verbosity level to suppress certain warnings, and allows optional parameters for tf_function wrapping and batch time steps handling during inference. The embed_text function converts a text input into a tensor, with an option to specify batch size.",
+        "type": "comment"
+    },
+    "88": {
+        "file_id": 12,
+        "content": "    \"\"\"Embeds a string using the Universal Sentence Encoder. Copies the string\n        to fill the batch dimension.\n    Args:\n        input (str): The string to embed.\n        batch_size (int, optional): . Defaults to 1.\n    Returns:\n        tf.Tensor: A tensor of shape (batch_size, 512).\n    \"\"\"\n    if isinstance(input, str):\n        input = input.lstrip(' ').rstrip(' ')\n        input = np.tile(np.array(input), (batch_size,))\n    embedded = TEXT_ENCODER(input).numpy()[0]\n    return tf.reshape(\n        tf.convert_to_tensor(embedded, dtype=tf.float32), (batch_size, 512)\n    )\ndef format_images(images: np.ndarray | list[np.ndarray]) -> tf.Tensor:\n    \"\"\"Formats a list of images to the correct shape and type.\n    Args:\n        images (np.ndarray | list[np.ndarray]): Must have at most 4 dimensions.\n    Returns:\n        tf.Tensor: A tensor of shape (batch_size, HEIGHT, WIDTH, 3).\n    \"\"\"\n    if isinstance(images, np.ndarray) and len(images.shape) == 3:\n        images = np.expand_dims(images, axis=0)\n    out = []\n    for image in images:",
+        "type": "code",
+        "location": "/robo_transformers/models/rt1/inference.py:131-163"
+    },
+    "89": {
+        "file_id": 12,
+        "content": "This code snippet contains two functions: \"embed_string\" and \"format_images\". The first function takes a string input, embeds it using the Universal Sentence Encoder, and returns a tensor of shape (batch\\_size, 512). The second function formats a list of images to the correct shape and type, returning a tensor of shape (batch\\_size, HEIGHT, WIDTH, 3).",
+        "type": "comment"
+    },
+    "90": {
+        "file_id": 12,
+        "content": "        image = tf.convert_to_tensor(image, dtype=tf.uint8)\n        image = tf.image.resize_with_pad(\n            image, target_width=WIDTH, target_height=HEIGHT\n        )\n        image = tf.reshape(image, (1, HEIGHT, WIDTH, 3))\n        image = tf.cast(image, dtype=tf.uint8)\n        out.append(image)\n    return tf.concat(out, 0)\ndef inference(\n    instructions: list[str] | str,\n    imgs: list[np.ndarray] | np.ndarray,\n    step: int,\n    reward: Optional[list[float] | float] = None,\n    policy: Optional[LoadedPolicy] = None,\n    policy_state=Optional[types.NestedArray],\n    terminate=False,\n) -> tuple[ps.ActionType, types.NestedSpecTensorOrArray, types.NestedSpecTensorOrArray]:\n    \"\"\"Runs inference on a list of images and instructions.\n    Args:\n        instructions (list[str]): A list of instructions. E.g. [\"pick up the block\"]\n        imgs (list[np.ndarray]): A list of images with shape[(HEIGHT, WIDTH, 3)]\n        step (int): The current time step.\n        reward (list[float], optional): Defaults to None.\n        policy (tf_agents.policies.tf_policy.TFPolicy, optional): Defaults to None.",
+        "type": "code",
+        "location": "/robo_transformers/models/rt1/inference.py:164-190"
+    },
+    "91": {
+        "file_id": 12,
+        "content": "This code snippet is from the `inference` function in the RoboTransformers library. It takes a list of images and instructions as input, and performs image processing and inference using a loaded policy model. The image processing involves converting the image to a tensor, resizing it with padding to a target width and height, reshaping the image tensor, casting the image tensor back to uint8 type, and appending it to a list of images. Finally, it returns the concatenated list of images using tf.concat. The inference function also takes optional arguments such as reward, policy, policy_state, and terminate, which can be used for additional processing or control flow within the function.",
+        "type": "comment"
+    },
+    "92": {
+        "file_id": 12,
+        "content": "        state (, optional). The internal network state. See 'policy state' in the \"Data Types\" section\n            of README.md. Defaults to None.\n        terminate (bool, optional): Whether or not to terminate the episode. Defaults to False.\n    Returns:\n        tuple[Action, State, Info]: The action, state, and info from the policy Again see the\n         \"Data Types\" section of README.md.\n    \"\"\"\n    if policy is None:\n        policy = load_rt1()\n    # Calculate batch size from instructions shape.\n    if isinstance(instructions, str):\n        batch_size = 1\n        if reward is not None:\n            reward = reward * np.ones((batch_size,), dtype=np.float32)\n    else:\n        batch_size = len(instructions)\n    # Create the observation. RT-1 only reads the 'image' and 'natural_language_embedding' keys\n    # so everything else can be zero.\n    observation = specs.zero_spec_nest(\n        specs.from_spec(policy.time_step_spec.observation), outer_dims=(batch_size,)\n    )\n    if reward is None:\n        reward = np.zeros((batch_size,), dtype=np.float32)",
+        "type": "code",
+        "location": "/robo_transformers/models/rt1/inference.py:191-217"
+    },
+    "93": {
+        "file_id": 12,
+        "content": "This code is loading the RT-1 policy, calculating batch size based on instructions, creating an observation for RT-1 to read and setting default reward values if necessary. The output is a tuple containing action, state, and info from the policy following the \"Data Types\" section in README.md.",
+        "type": "comment"
+    },
+    "94": {
+        "file_id": 12,
+        "content": "    if policy_state is None:\n         # Run dummy inference to get the initial state.\n        policy_state = policy.get_initial_state(batch_size)\n        time_step = ts.transition(observation, np.zeros((batch_size,), dtype=np.float32))\n        _, policy_state, _ = policy.action(time_step, policy_state)\n    observation[\"image\"] = format_images(imgs)\n    observation['natural_language_embedding'] = embed_text(\n        instructions, batch_size)\n    if step == 0:\n        time_step = ts.restart(observation, batch_size)\n    elif terminate:\n        time_step = ts.termination(observation, reward)\n    else:\n        time_step = ts.transition(observation, reward)\n    action, next_state, info = policy.action(time_step, policy_state)\n    if logging.level_debug():\n        writer = tf.summary.create_file_writer(\"./runs\")\n        with writer.as_default():\n            for i in range(3):\n                tf.summary.scalar(\n                    \"world_vector{}\".format(i), action[\"world_vector\"][0, i], step=step\n                )",
+        "type": "code",
+        "location": "/robo_transformers/models/rt1/inference.py:219-244"
+    },
+    "95": {
+        "file_id": 12,
+        "content": "This code initializes the policy state if none is given, prepares time step, and obtains action, next state, and info from the policy. If logging is enabled at debug level, it writes a scalar for \"world_vector\" in three iterations to a file writer.",
+        "type": "comment"
+    },
+    "96": {
+        "file_id": 12,
+        "content": "                tf.summary.scalar(\n                    \"rotation_delta{}\".format(i),\n                    action[\"rotation_delta\"][0, i],\n                    step=step,\n                )\n            tf.summary.scalar(\n                \"gripper_closedness_action{}\".format(i),\n                action[\"gripper_closedness_action\"][0, 0],\n                step=step,\n            )\n            writer.flush()\n    return action, next_state, info\ndef get_demo_images(output=None) -> np.ndarray:\n    \"\"\"Loads a demo video from the directory.\n    Returns:\n        list[tf.Tensor]: A list of tensors of shape (batch_size, HEIGHT, WIDTH, 3).\n    \"\"\"\n    # Suppress noisy PIL warnings.\n    log_level = logging.get_verbosity()\n    if logging.get_verbosity() < 2:\n        logging.set_verbosity(logging.ERROR)\n    filenames = [\n        files(\"robo_transformers\").joinpath(\"demo_imgs/gripper_far_from_grasp.png\"),\n        files(\"robo_transformers\").joinpath(\"demo_imgs/gripper_mid_to_grasp.png\"),\n        files(\"robo_transformers\").joinpath(\"demo_imgs/gripper_almost_grasp.png\"),",
+        "type": "code",
+        "location": "/robo_transformers/models/rt1/inference.py:245-274"
+    },
+    "97": {
+        "file_id": 12,
+        "content": "This code snippet is from the \"robo_transformers\" project, specifically in the models/rt1/inference.py file. The function defines a method that measures rotation delta and gripper closedness for each action step and writes these as summaries for later use. It returns the action, next state, and additional information. There's also a separate function, get_demo_images(), which loads a demo video from a specified directory into tensors of shape (batch_size, HEIGHT, WIDTH, 3). It suppresses noisy PIL warnings to improve performance.",
+        "type": "comment"
+    },
+    "98": {
+        "file_id": 12,
+        "content": "    ]\n    images = []\n    for fn in filenames:\n        img = Image.open(fn)\n        if FLAGS.show and output is not None:\n            img.save(os.path.join(output, fn.name))\n        img = np.array(img.convert(\"RGB\"))\n        images.append(img)\n    logging.set_verbosity(log_level)\n    return images\ndef run_demo(policy: LoadedPolicy = None):\n    if policy is None:\n        policy = load_rt1(FLAGS.model_key, FLAGS.checkpoint_path)\n    # Pass in an instruction through the --instructions flag.\n    # The rewards will not affect the inference at test time.\n    images = get_demo_images(output=os.getcwd())\n    rewards = [0, 0, 0]\n    state = None\n    for step in range(3):\n        action, state, _ = inference(\n            FLAGS.instruction,\n            images[step],\n            step,\n            rewards[step],\n            policy,\n            policy_state=state,\n            terminate=(step == 2),\n        )\n        pprint(action)\n        print(\" \")\ndef main(_):\n    if logging.level_debug():\n        tf.debugging.experimental.enable_dump_debug_info(",
+        "type": "code",
+        "location": "/robo_transformers/models/rt1/inference.py:275-313"
+    },
+    "99": {
+        "file_id": 12,
+        "content": "The code defines a function `run_demo` that loads a policy and executes a demo for three images. It first checks if a policy is provided, if not it loads the policy from FLAGS.model_key and FLAGS.checkpoint_path. Then, it retrieves the images by calling `get_demo_images`, sets rewards as [0, 0, 0], and initializes the state as None. For each step in a range of 3, it performs inference on the image, prints the action taken, and updates the state if necessary. If the step is the last one (step == 2), it terminates the demo. The code also logs messages based on the verbosity level set by FLAGS. Finally, it enables debugging information if logging is set to debug level.",
+        "type": "comment"
+    }
+}

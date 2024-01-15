@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="github-markdown.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <title>Project structure of: sebbyjp/robo_transformers</title>
+    <style>
+        .directory:hover {
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        :target {
+            background-color: yellow !important;
+        }
+
+        .folded::before {
+            content: '\25B6';
+            margin-right: 8px;
+            /* Add space between marker and text */
+        }
+
+        .expanded::before {
+            content: '\25BC';
+            margin-right: 8px;
+            /* Add space between marker and text */
+        }
+    </style>
+    <script>
+        function toggleVisibility(element) {
+            let mclass = element.getAttribute("class");
+            if (mclass == "expanded") {
+                element.setAttribute('class', 'folded');
+            } else {
+                element.setAttribute('class', 'expanded');
+            }
+            const siblings = element.parentNode.children;
+            for (const sibling of siblings) {
+                if (sibling !== element) {
+                    sibling.style.display = (sibling.style.display === 'none') ? 'block' : 'none';
+                }
+            }
+        }
+    </script>
+    <style>
+        .markdown-body {
+            box-sizing: border-box;
+            min-width: 200px;
+            max-width: 980px;
+            margin: 0 auto;
+            padding: 45px;
+        }
+
+        @media (max-width: 767px) {
+            .markdown-body {
+                padding: 15px;
+            }
+
+            .partial-repository-url {
+                display: none;
+            }
+        }
+
+        ul {
+            list-style: none;
+        }
+        #feeling-lucky:hover{
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <article class="markdown-body">
+        <h2>Project structure<span hierarchy="0" class="partial-repository-url"> of: sebbyjp/robo_transformers</span><div style="float: right;"><a title="Document index" style="margin:3.5px;" href="index.html"><i class="bi bi-search"></i></a><a title="Feeling lucky" style="margin:3.5px;" id="feeling-lucky" href="#"><i class="bi bi-dice-3"></i></a><a title="Expand tree" style="margin:3.5px;" href="tree.html?full=true" id="expand-tree"><i class="bi bi-caret-down-square"></i></a></div></h2>
+<ul>
+<li><span hierarchy="0" class="expanded" onclick="toggleVisibility(this)" ><strong class="directory" id="/"><code>robo&UnderBar;transformers</code></strong> <em>TensorFlow dependencies and inference setup with varied models testing.</em></span><ul>
+<li><a class="file_link" href="index.html?q=/pyproject.toml" id="/pyproject.toml"><code>pyproject&period;toml</code></a> <em>Python project config with Poetry, TensorFlow dependencies.</em></li>
+<li><a class="file_link" href="index.html?q=/README.md" id="/README.md"><code>README&period;md</code></a> <em>Setup RTL, package for model inference, defines data types.</em></li>
+<li><a class="file_link" href="index.html?q=/requirements.txt" id="/requirements.txt"><code>requirements&period;txt</code></a> <em>Required Python libraries with versions listed for project compatibility.</em></li>
+<li><span hierarchy="1" class="expanded" onclick="toggleVisibility(this)" ><strong class="directory" id="/robo_transformers/"><code>robo&UnderBar;transformers</code></strong> <em>Robot Transformers actions and registry.</em></span><ul>
+<li><span hierarchy="2" class="expanded" onclick="toggleVisibility(this)" ><strong class="directory" id="/robo_transformers/abstract/"><code>abstract</code></strong> <em>Abstract classes for action and agent in transformers directory.</em></span><ul>
+<li><a class="file_link" href="index.html?q=/robo_transformers/abstract/action.py" id="/robo_transformers/abstract/action.py"><code>action&period;py</code></a> <em>Abstract class Action: Create instance from numpy dict, returns action as dictionary.</em></li>
+<li><a class="file_link" href="index.html?q=/robo_transformers/abstract/agent.py" id="/robo_transformers/abstract/agent.py"><code>agent&period;py</code></a> <em>Abstract Agent class with history and past actions.</em></li>
+</ul>
+</li>
+<li><a class="file_link" href="index.html?q=/robo_transformers/demo.py" id="/robo_transformers/demo.py"><code>demo&period;py</code></a> <em>Transformer agent performs inference on three images.</em></li>
+<li><a class="file_link" href="index.html?q=/robo_transformers/inference_server.py" id="/robo_transformers/inference_server.py"><code>inference&UnderBar;server&period;py</code></a> <em>Robot inference server for Vision-Language model with grasp prediction</em></li>
+<li><span hierarchy="2" class="expanded" onclick="toggleVisibility(this)" ><strong class="directory" id="/robo_transformers/models/"><code>models</code></strong> <em>Robotics models: Octo, RT1, transformers inference</em></span><ul>
+<li><span hierarchy="3" class="expanded" onclick="toggleVisibility(this)" ><strong class="directory" id="/robo_transformers/models/octo/"><code>octo</code></strong> <em>OctoModel: Robotic octopus agent tasks inference</em></span><ul>
+<li><a class="file_link" href="index.html?q=/robo_transformers/models/octo/action.py" id="/robo_transformers/models/octo/action.py"><code>action&period;py</code></a> <em>Octopus arm action data class</em></li>
+<li><a class="file_link" href="index.html?q=/robo_transformers/models/octo/agent.py" id="/robo_transformers/models/octo/agent.py"><code>agent&period;py</code></a> <em>OctoAgent: Agent subclass, acts with OctoModel and tasks.</em></li>
+<li><a class="file_link" href="index.html?q=/robo_transformers/models/octo/inference.py" id="/robo_transformers/models/octo/inference.py"><code>inference&period;py</code></a> <em>Octo inference model script</em></li>
+</ul>
+</li>
+<li><span hierarchy="3" class="expanded" onclick="toggleVisibility(this)" ><strong class="directory" id="/robo_transformers/models/rt1/"><code>rt1</code></strong> <em>RT1 model: Agents, actions, inference for robotics with TF/PT and URL checkpoints.</em></span><ul>
+<li><a class="file_link" href="index.html?q=/robo_transformers/models/rt1/action.py" id="/robo_transformers/models/rt1/action.py"><code>action&period;py</code></a> <em>RT1Action: Action subclass with action parameters and defaults.</em></li>
+<li><a class="file_link" href="index.html?q=/robo_transformers/models/rt1/agent.py" id="/robo_transformers/models/rt1/agent.py"><code>agent&period;py</code></a> <em>RT1Agent: Agent for RT1 model, action generation via inference.</em></li>
+<li><a class="file_link" href="index.html?q=/robo_transformers/models/rt1/inference.py" id="/robo_transformers/models/rt1/inference.py"><code>inference&period;py</code></a> <em>Inference code for robotics using TF/PT, URL checkpoints, Sentence Encoder</em></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="file_link" href="index.html?q=/robo_transformers/registry.py" id="/robo_transformers/registry.py"><code>registry&period;py</code></a> <em>Agent-Action registry for RT1 and Octo models in Robot Transformers.</em></li>
+</ul>
+</li>
+<li><span hierarchy="1" class="expanded" onclick="toggleVisibility(this)" ><strong class="directory" id="/tests/"><code>tests</code></strong> <em>InferenceServer and OctoAgent tests with different models.</em></span><ul>
+<li><a class="file_link" href="index.html?q=/tests/test_inference_server.py" id="/tests/test_inference_server.py"><code>test&UnderBar;inference&UnderBar;server&period;py</code></a> <em>Test InferenceServer dummy mode functionality.</em></li>
+<li><a class="file_link" href="index.html?q=/tests/test_octo.py" id="/tests/test_octo.py"><code>test&UnderBar;octo&period;py</code></a> <em>OctoAgent tests: demo and wrist action generation.</em></li>
+<li><a class="file_link" href="index.html?q=/tests/test_rtl.py" id="/tests/test_rtl.py"><code>test&UnderBar;rtl&period;py</code></a> <em>Four test functions, different models, load and run demos.</em></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+    </article>
+    <script type="text/javascript">
+        function getQueryParams() {
+            var search = window.location.search.substring(1); // Remove leading '?'
+            var queryParams = {};
+            search.split('&').forEach(function (pair) {
+                var parts = pair.split('=');
+                var key = decodeURIComponent(parts[0]);
+                var value = decodeURIComponent(parts[1]);
+                queryParams[key] = value;
+            });
+            return queryParams;
+        }
+
+        const queryParams = getQueryParams(window.location.search);
+        const show_full = queryParams.full == "true";
+        //const is_random = queryParams.random == 'true';
+        function feelingLucky() {
+            var elements = document.getElementsByClassName("file_link");
+            var randomIndex = Math.floor(Math.random() * elements.length);
+            window.location = elements[randomIndex].href;
+        }
+        //if (is_random) {feelingLucky();}
+        document.getElementById("feeling-lucky").onclick = feelingLucky;
+        if (!show_full) {
+            const spans = document.querySelectorAll('span');
+            for (let span of spans) {
+                if (span.getAttribute("hierarchy") == '0') { continue }
+                toggleVisibility(span);
+            }
+        } else {
+            const expand_elem = document.getElementById('expand-tree');
+            expand_elem.setAttribute("href", "tree.html");
+            expand_elem.setAttribute("title", "Undo expand");
+            expand_elem.innerHTML = '<i class="bi bi-caret-up-square"></i>'
+        }
+
+    </script>
+</body>
+
+</html>

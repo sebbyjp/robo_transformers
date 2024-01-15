@@ -1,0 +1,10 @@
+{
+    "summary": "This code defines a class for representing octopus arm action data. It consists of x, y, z, yaw, pitch, roll, and grasp parameters as float values, with methods like `from_jax_array` to create objects from JAX arrays. The class inherits from the abstract `Action` class.",
+    "details": [
+        {
+            "comment": "This code defines a class for representing octopus arm action data. It consists of x, y, z, yaw, pitch, roll, and grasp parameters as float values, with methods like `from_jax_array` to create objects from JAX arrays. The class inherits from the abstract `Action` class.",
+            "location": "\"/media/root/Prima/works/robo_transformers/docs/src/robo_transformers/models/octo/action.py\":0-34",
+            "content": "from dataclasses import dataclass\nfrom beartype import beartype\nfrom robo_transformers.abstract.action import Action\nfrom typing import TypedDict\n@beartype\nclass OctoActionDictT(TypedDict):\n    x: float\n    y: float\n    z: float\n    yaw: float\n    pitch: float\n    roll: float\n    grasp: float\n@beartype\n@dataclass\nclass OctoAction(Action):\n    '''End effector pose deltas.\n    '''\n    x: float = 0.0\n    y: float = 0.0\n    z: float = 0.0\n    yaw: float = 0.0\n    pitch: float = 0.0\n    roll: float = 0.0\n    grasp: float = 0.0  # How much to open or close the gripper.\n    @classmethod\n    def from_jax_array(cls, jax_array):\n        return cls(*[float(x) for x in jax_array])"
+        }
+    ]
+}
