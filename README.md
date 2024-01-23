@@ -4,6 +4,14 @@
 [![ubuntu | python 3.11 | 3.10 | 3.9](https://github.com/sebbyjp/robo_transformers/actions/workflows/ubuntu.yml/badge.svg)](https://github.com/sebbyjp/robo_transformers/actions/workflows/ubuntu.yml)
 [![macos | python 3.11 | 3.10 | 3.9](https://github.com/sebbyjp/robo_transformers/actions/workflows/macos.yml/badge.svg)](https://github.com/sebbyjp/robo_transformers/actions/workflows/macos.yml)
 
+## [Available Models](#available-models)
+
+| Model Type |  Variants | Observation Space | Action Space | Author |
+| ---------- | --------- | ------- | ------- | ------- |
+| [RT-1](https://robotics-transformer1.github.io/)     | rt1main, rt1multirobot, rt1simreal | text + head camera | end effector pose delta |  Google Research, 2022 |
+| [RT-1-X](https://robotics-transformer-x.github.io/)  | rt1x   | text + head camera | end effector pose delta |  Google Research et al., 2023 |
+| [Octo](https://github.com/octo-models/octo) | octo-base, octo-small | text + head camera + Optional[wrist camera] | end effector pose delta |  Octo Model Team et al., 2023 |
+
 ## Installation
 
 Requirements:
@@ -18,6 +26,7 @@ Clone this repo:
 Install requirements:
 
 `python -m pip install --upgrade pip`
+
 `cd robo_transformers && pip install -r requirements.txt`
 
 ## Run Octo inference on demo images

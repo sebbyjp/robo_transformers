@@ -2,7 +2,7 @@ name: "ubuntu | python 3.11 | 3.10 | 3.9 "
 
 on:
   push:
-    branches: [master]
+    branches: [main]
   pull_request:
   workflow_dispatch:
 
@@ -13,7 +13,7 @@ jobs:
       matrix:
         python-version:
           - "3.11"
-          # - "3.11"
+
     name: Ubuntu Python ${{ matrix.python-version }}
     steps:
       - uses: actions/checkout@v3
