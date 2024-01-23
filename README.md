@@ -18,6 +18,7 @@ Clone this repo:
 Install requirements:
 
 `python -m pip install --upgrade pip`
+
 `cd robo_transformers && pip install -r requirements.txt`
 
 ## Run Octo inference on demo images

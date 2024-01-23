@@ -1,8 +1,9 @@
 name: macos | python 3.11 | 3.10 | 3.9
 on:
   push:
-    branches: [master]
+    branches: [main]
   pull_request:
+    branches: [main]
   workflow_dispatch:
 
 jobs:

@@ -18,15 +18,13 @@ class InvertingDummyAction:
     '''
     def __init__(self, action: ActionT):
         self.action: ActionT = action
+        # First call will invert again.
+        self.invert_()
 
     def invert_(self):
         for f in fields(self.action):
             setattr(self.action, f.name, -getattr(self.action, f.name))
-
-    def __post_init__(self):
-        # First call will invert again.
-        self.invert_()
-
+    
     def make(self) -> dict:
         self.invert_()
         return asdict(self.action)

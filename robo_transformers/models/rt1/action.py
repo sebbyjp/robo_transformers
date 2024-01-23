@@ -23,6 +23,6 @@ class RT1Action(Action):
     base_displacement_vector: np.ndarray = field(default_factory= lambda: np.array([0.0, 0.0]))
     base_displacement_vertical_rotation:  np.ndarray   = field(default_factory= lambda : np.array([0.0]))
     gripper_closedness_action: np.ndarray  = field(default_factory= lambda : np.array([1.0]))
-    rotation_delta:  np.ndarray   = field(default_factory= lambda : np.array([0.0, 0.0, 0.0]))
+    rotation_delta:  np.ndarray   = field(default_factory= lambda : np.array([1.57, 0.0, 0.0]))
     terminate_episode: np.ndarray   = field(default_factory= lambda : np.array([0,0,0]))
-    world_vector:  np.ndarray  = field(default_factory= lambda : np.array([0.0, 0.0, 0.02]))
+    world_vector:  np.ndarray  = field(default_factory= lambda : np.array([0.05, 0.05, 0.05]))
