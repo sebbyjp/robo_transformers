@@ -76,13 +76,13 @@ class OctoAgent(Agent):
 
             # Unormalize using bridge dataset if not specified
             if mean_action is None:
-                mean_action = self.model.dataset_statistics["bridge_dataset"]['action']['mean']
+                mean_action = self.model.dataset_statistics["fractal20220817_data"]['action']['mean']
                 mean_action[-1] = -1.0
                 # mean_action = np.array([0.05, -0.01, 0.01, 0.0, -0.05, 0.0, 0.0])
                 # mean_action = np.array([0.01, -0.002, 0.0, 0.0, -0.02, 0.0, 0.0])
                 # mean_action = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -1.0])
             if std_action is None:
-                std_action =  self.model.dataset_statistics["bridge_dataset"]['action']['std']
+                std_action =  self.model.dataset_statistics["fractal20220817_data"]['action']['std']
                 std_action[-1] = 2.0
                 # std_action = np.array([0.2, 0.2, 0.1, 0.2, 0.2, 0.2, 1.5])
                 # std_action = np.array([0.045,0.031, 0.015, 0.02, 0.02, 0.02, 50.0])
