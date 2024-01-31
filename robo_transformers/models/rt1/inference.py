@@ -207,28 +207,22 @@ def inference(
     else:
         batch_size = len(instructions)
 
+    if reward is None:
+        reward = np.zeros((batch_size,), dtype=np.float32)
+
+    if policy_state is None:
+        policy_state = policy.get_initial_state(batch_size)
+
     # Create the observation. RT-1 only reads the 'image' and 'natural_language_embedding' keys
     # so everything else can be zero.
     observation = specs.zero_spec_nest(
         specs.from_spec(policy.time_step_spec.observation), outer_dims=(batch_size,)
     )
-    
-    if reward is None:
-        reward = np.zeros((batch_size,), dtype=np.float32)
-
-    if policy_state is None:
-         # Run dummy inference to get the initial state.
-        policy_state = policy.get_initial_state(batch_size)
-        time_step = ts.transition(observation, np.zeros((batch_size,), dtype=np.float32))
-        _, policy_state, _ = policy.action(time_step, policy_state)
-
     observation["image"] = format_images(imgs)
     observation['natural_language_embedding'] = embed_text(
         instructions, batch_size)
 
-    if step == 0:
-        time_step = ts.restart(observation, batch_size)
-    elif terminate:
+    if terminate:
         time_step = ts.termination(observation, reward)
     else:
         time_step = ts.transition(observation, reward)

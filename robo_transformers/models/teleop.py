@@ -1,5 +1,5 @@
 from robo_transformers.abstract.agent import Agent
-from robo_transformers.models.rt1.action import RT1Action
+from robo_transformers.models.octo.action import OctoAction
 from typing import Optional
 import os
 import cv2
@@ -11,6 +11,11 @@ from PIL import Image
 import math
 os.environ['TOKENIZERS_PARALLELISM'] = 'false'
 
+PICK_COKE_CAN= [
+     [0.100000, -0.040000, 0.040000, 0.000000, 0, 0.000000, 1.0],
+
+]
+
 
 @beartype
 class TeleOpAgent(Agent):
@@ -18,7 +23,7 @@ class TeleOpAgent(Agent):
     def __init__(self,
                  weights_key: str = '',
                  window_size: int = 2,
-                 xyz_step: float = 0.02,
+                 xyz_step: float = 0.01,
                  rpy_step: float = math.pi / 8) -> None:
         '''Agent for octo model.
 
@@ -40,7 +45,7 @@ class TeleOpAgent(Agent):
             instruction: str,
             image: npt.ArrayLike,
             image_wrist: Optional[npt.ArrayLike] = None
-            ) -> RT1Action:
+            ) -> OctoAction:
 
         # Create observation of past `window_size` number of observations
         image = cv2.resize(np.array(image, dtype=np.uint8), (256, 256))
@@ -111,8 +116,5 @@ class TeleOpAgent(Agent):
                         value.count('Z') - value.count('X')])
         action = np.concatenate([xyz, rpy, [grasp]])
 
-        rt1_action = RT1Action(world_vector=action[0:3],
-                               rotation_delta=action[3:6],
-                               gripper_closedness_action=np.array(action[6]))
 
-        return rt1_action
+        return OctoAction(*action)
