@@ -25,7 +25,7 @@ tf-agents = "^0.19.0"
 importlib-resources = "^6.1.1"
 protobuf = ">=3.19.6,<4.24"
 octo = {git = "https://github.com/sebbyjp/octo.git", branch = "peralta"}
-beartype = "^0.16.4"
+beartype = "^0.15"
 pyyaml = "^6.0.1"
 lark = "^1.1.9"
 jinja2 = "^3.1.3"
