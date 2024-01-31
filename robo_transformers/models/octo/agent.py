@@ -1,5 +1,5 @@
 from robo_transformers.abstract.agent import Agent
-from robo_transformers.models.octo.action import OctoAction
+from robo_transformers.models.rt1.action import RT1Action
 from typing import Optional
 import jax
 import os
@@ -14,7 +14,7 @@ os.environ['TOKENIZERS_PARALLELISM'] = 'false'
 
 @beartype
 class OctoAgent(Agent):
-    def __init__(self, weights_key: str = 'octo-small', window_size: int = 2, num_future_actions: int = 2) -> None:
+    def __init__(self, weights_key: str = 'octo-small', window_size: int = 2, num_future_actions: int = 1) -> None:
         '''Agent for octo model.
 
         Args:
@@ -33,7 +33,7 @@ class OctoAgent(Agent):
 
 
     
-    def act(self, instruction: str, image: npt.ArrayLike, image_wrist: Optional[npt.ArrayLike] = None, mean_action: Optional[npt.ArrayLike] = None, std_action: Optional[npt.ArrayLike] = None) -> OctoAction:
+    def act(self, instruction: str, image: npt.ArrayLike, image_wrist: Optional[npt.ArrayLike] = None, mean_action: Optional[npt.ArrayLike] = None, std_action: Optional[npt.ArrayLike] = None) -> RT1Action:
         pad_mask = np.full((1, self.window_size), True, dtype=bool)
         # Create observation of past `window_size` number of observations
         image = cv2.resize(np.array(image, dtype=np.uint8), (256, 256))
@@ -93,8 +93,8 @@ class OctoAgent(Agent):
                 self.output_buffer.append(np.array(a).squeeze())
         
         action = self.output_buffer.pop(0)
-        # rt1_action = RT1Action(world_vector = action[0:3], rotation_delta=action[3:6], gripper_closedness_action=np.array(action[6]))
+        # return OctoAction.from_jax_array(action)
+        return  RT1Action(world_vector = action[0:3], rotation_delta=action[3:6], gripper_closedness_action=np.array(action[6]))
 
-        return OctoAction.from_jax_array(action)
 
     
