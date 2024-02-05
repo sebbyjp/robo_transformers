@@ -18,7 +18,7 @@ python = ">=3.9,<3.12"
 # tensorflow-metal= { version = "^1.1.0", markers = "sys_platform == 'darwin'" }
 tensorflow = "^2.15.0"
 
-gdown = "^4.7.1"
+gdown = "^5.1.0"
 pillow = "^10.1.0"
 tensorflow-hub = "^0.15.0"
 tf-agents = "^0.19.0"
