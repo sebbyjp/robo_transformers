@@ -20,7 +20,7 @@ REGISTRY = {
     "rt1main": "https://drive.google.com/drive/folders/1QG99Pidaw6L9XYv1qSmuip_qga9FRcEC?usp=drive_link",
     "rt1simreal": "https://drive.google.com/drive/folders/1_nudHVmGuGUpGcrLlswg9O-aWy27Cjg0?usp=drive_link",
     "rt1multirobot": "https://drive.google.com/drive/folders/1EWjKSnfvD-ANPTLxugpCVP5zU6ADy8km?usp=drive_link",
-    "rt1x": "https://drive.google.com/drive/folders/1LjTizUsqM88-5uHAIczTrObB3_z4OlgE?usp=drive_link",
+    "rt1x": "https://drive.google.com/drive/folders/1xcH8uuXCfVqnVi6B-_rx6UR2biZ7juRa?usp=drive_link",
     # 'xgresearch':
     #     "https://drive.google.com/drive/folders/185nP-a8z-1Pm6Zc3yU2qZ01hoszyYx51?usp=drive_link"
 }

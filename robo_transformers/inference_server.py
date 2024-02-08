@@ -34,8 +34,7 @@ class InvertingDummyAction:
 class InferenceServer:
 
     def __init__(self,
-                 model_type: str = "rt1",
-                 weights_key: str = "rt1main",
+                 model_str: str = "rt1/rt1main",
                  dummy: bool = False,
                  agent: Optional[Agent] = None,
                  **kwargs
@@ -53,6 +52,7 @@ class InferenceServer:
         '''
 
         self.dummy: bool = dummy
+        model_type, variant = model_str.split('/')
 
         if dummy:
             self.action = InvertingDummyAction(REGISTRY[model_type]['action']())
@@ -60,7 +60,9 @@ class InferenceServer:
         elif agent is not None:
             self.agent: Agent = agent
         else:
-            self.agent: Agent = REGISTRY[model_type]['agent'](weights_key)
+            if 'weights_key' not in kwargs:
+                kwargs['weights_key'] = variant
+            self.agent: Agent = REGISTRY[model_type]['agent'](**kwargs)
             self.action = REGISTRY[model_type]['action']()
 
     def __call__(self,

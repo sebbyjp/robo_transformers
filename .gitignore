@@ -8,3 +8,4 @@ demo_img*
 checkpoints/*
 logs
 runs/
+episodes/
