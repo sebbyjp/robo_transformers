@@ -15,7 +15,7 @@ REGISTRY = {
     },
     "octo": {
         "agent": OctoAgent,
-        "action": EEF_ACTION_SPACE,
+        "action": OctoAction,
         "observation": VLA_SPACE,
         "variants": ["octo-small", "octo-base"]
     },

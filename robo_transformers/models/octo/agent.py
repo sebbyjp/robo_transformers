@@ -1,4 +1,5 @@
 from robo_transformers.abstract.agent import Agent
+from robo_transformers.models.octo.action import OctoAction
 from robo_transformers.models.rt1.action import RT1Action
 from typing import Optional
 import jax
@@ -10,18 +11,11 @@ from octo.model.octo_model import OctoModel
 from beartype import beartype
 from absl import logging
 from PIL import Image
-from robo_transformers.recorder import Replayer
-
 os.environ['TOKENIZERS_PARALLELISM'] = 'false'
-
 
 @beartype
 class OctoAgent(Agent):
-
-    def __init__(self,
-                 weights_key: str = 'octo-small',
-                 window_size: int = 2,
-                 num_future_actions: int = 1) -> None:
+    def __init__(self, weights_key: str = 'octo-small', window_size: int = 2, num_future_actions: int = 3) -> None:
         '''Agent for octo model.
 
         Args:
@@ -30,102 +24,71 @@ class OctoAgent(Agent):
             num_future_actions (int, optional): Number of future actions to return. Defaults to 1.
         '''
         print('Loading from {}'.format(weights_key))
-        self.model: OctoModel = OctoModel.load_pretrained(
-            "hf://rail-berkeley/" + weights_key)
-        self.image_history = []  # Chronological order.
-        self.image_wrist_history = []  # Chronological order.
+        self.model: OctoModel = OctoModel.load_pretrained("hf://rail-berkeley/" + weights_key)
+        self.image_history = [] # Chronological order.
+        self.image_wrist_history = [] # Chronological order.    
         self.window_size = window_size
         self.output_buffer = []
-        assert num_future_actions in [1, 2, 3,
-                                      4]  # Max actions returned by model.
+        assert num_future_actions in [1,2,3,4] # Max actions returned by model.
         self.num_future_actions = num_future_actions
-        self.replayer0 = Replayer("episode0", data_dir="episodes")
-        self.replayer1 = Replayer("episode1", data_dir="episodes")
 
 
-    def act(self,
-            instruction: str,
-            image: npt.ArrayLike,
-            image_wrist: Optional[npt.ArrayLike] = None,
-            mean_action: Optional[npt.ArrayLike] = None,
-            std_action: Optional[npt.ArrayLike] = None) -> RT1Action:
-        pad_mask = np.full((1, self.window_size), True, dtype=bool)
+    
+    def act(self, instruction: str, image: npt.ArrayLike, image_wrist: Optional[npt.ArrayLike] = None, mean_action: Optional[npt.ArrayLike] = None, std_action: Optional[npt.ArrayLike] = None) -> OctoAction:
+
         # Create observation of past `window_size` number of observations
         image = cv2.resize(np.array(image, dtype=np.uint8), (256, 256))
         self.image_history.append(image)
         if len(self.image_history) > self.window_size:
             self.image_history.pop(0)
-        elif len(self.image_history) < self.window_size:
-            self.image_history.append(image)
-            pad_mask[0, 0] = False
-
+        
         images = np.stack(self.image_history)[None]
-        observation = {"image_primary": images, "pad_mask": pad_mask}
-
+        np.expand_dims(images, axis=0)
+        observation = {"image_primary": images, "pad_mask": np.full((1, images.shape[1]), True, dtype=bool)}
+        
         if image_wrist is not None:
-            image_wrist = cv2.resize(np.array(image_wrist, dtype=np.uint8),
-                                     (128, 128))
+            image_wrist = cv2.resize(np.array(image_wrist, dtype=np.uint8), (128, 128))
             self.image_wrist_history.append(image_wrist)
             if len(self.image_wrist_history) > self.window_size:
                 self.image_wrist_history.pop(0)
-            elif len(self.image_wrist_history) < self.window_size:
-                self.image_wrist_history.append(image_wrist)
 
             # Add wrist image to observation
             image_wrists = np.stack(self.image_wrist_history)[None]
+            np.expand_dims(image_wrists, axis=0)
             observation["image_wrist"] = image_wrists
+
 
         if logging.level_debug():
             for i, image in enumerate(self.image_history):
                 Image.fromarray(image).save('image{}.png'.format(i))
-                Image.fromarray(self.image_wrist_history[i]).save(
-                    'image_wrist{}.png'.format(i))
+                Image.fromarray(self.image_wrist_history[i]).save('image_wrist{}.png'.format(i))
 
-        if len(self.output_buffer) > 0:
-            print('Using buffer')
-        else:
-            # Run inference.ß
+        # Run inference
+        if len(self.output_buffer) == 0:
             task = self.model.create_tasks(texts=[instruction])
-            norm_actions = self.model.sample_actions(observation,
-                                                     task,
-                                                     rng=jax.random.PRNGKey(0))
-            norm_actions = norm_actions[0]  # remove batch
+            norm_actions = self.model.sample_actions(observation, task, rng=jax.random.PRNGKey(0))
+            norm_actions = norm_actions[0]   # remove batch
 
             # Unormalize using bridge dataset if not specified
             if mean_action is None:
-                mean_action = self.model.dataset_statistics[
-                    "fractal20220817_data"]['action']['mean']
-                # mean_action[-1] = -1.0
-                # mean_action = np.array([
-                #     0.00261905, -0.005, -0.00214286, 0., 0.00934998, 0.,
-                #     -0.23809524
-                # ])
-                # mean_action = np.array([0.05, -0.015, 0.0, 0.0, -0.05, 0.0, -1.0])
-                # mean_action = np.array([0.01, -0.002, 0.0, 0.0, -0.02, 0.0, -1.0])
-                # mean_action = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -1.0])
+                mean_action = self.model.dataset_statistics["fractal20220817_data"]['action']['mean']
+                # mean_action = np.array([0.05, -0.01, 0.01, 0.0, -0.05, 0.0, 0.0])
+                # mean_action = np.array([0.01, -0.002, 0.0, 0.0, -0.02, 0.0, 0.0])
             if std_action is None:
-                std_action = self.model.dataset_statistics[
-                    "fractal20220817_data"]['action']['std']
-                # std_action[-1] = 2.0
-                # std_action = np.array([
-                #     0.03086526, 0.01367131, 0.02273404, 0., 0.13517107, 0.,
-                #     0.52596957
-                # ])
+                std_action =  self.model.dataset_statistics["fractal20220817_data"]['action']['std']
                 # std_action = np.array([0.2, 0.2, 0.1, 0.2, 0.2, 0.2, 1.5])
-                # std_action = np.array([0.045,0.031, 0.015, 0.02, 0.02, 0.02, 2.0])
-                # std_action = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0])
+                # std_action = np.array([0.045,0.031, 0.015, 0.02, 0.02, 0.02, 10.0])
             actions = norm_actions * std_action + mean_action
 
             for a in actions[:self.num_future_actions]:
                 self.output_buffer.append(np.array(a).squeeze())
-
+        else:
+            print('Using buffer')
         action = self.output_buffer.pop(0)
-        # if "place" in instruction:
-        #     replayer = self.replayer1
-        # else:
-        #     replayer = self.replayer0
-        # action = next(replayer)
-        # print(action)
-        # return OctoAction(*action)
-        # return OctoAction.from_jax_array(action)
-        return  RT1Action(world_vector = action[0:3], rotation_delta=action[3:6], gripper_closedness_action=np.array(action[6]))
+        return OctoAction(x=float(action[0]), y=float(action[1]), z=float(action[2]), roll=float(action[3]), pitch=float(action[4]), yaw=float(action[5]), grasp=float(action[6]))
+        # rt1_action = RT1Action(world_vector = action[0:3], rotation_delta=action[3:6], gripper_closedness_action=np.array(action[6]))
+        #   action = np.sum(np.array(actions), axis = 0).squeeze()
+
+        # return rt1_action
+
+    

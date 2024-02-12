@@ -11,14 +11,12 @@ import torch
 from beartype import beartype
 from einops import repeat, rearrange
 import sys
-sys.path.append("/simply_ws/src/RT-X/pytorch_rt1_with_trainer_and_tester")
-import util.misc as utils
-from IO_dataset_torch import build_dataset
-from maruya24_rt1.tokenizers.utils import batched_space_sampler, np_to_tensor
-from maruya24_rt1.transformer_network import TransformerNetwork
-from maruya24_rt1.transformer_network_test_set_up import state_space_list
+sys.path.append('/simply_ws/src/robo_transformers/robo_transformers')
+from robo_transformers.oxe_torch.rt1.maruya24_rt1.tokenizers.utils import batched_space_sampler, np_to_tensor
+from robo_transformers.oxe_torch.rt1.maruya24_rt1.transformer_network import TransformerNetwork
+from robo_transformers.oxe_torch.rt1.maruya24_rt1.transformer_network_test_set_up import state_space_list
 import copy
-
+from PIL import Image
 
 from gym import spaces
 from collections import OrderedDict
@@ -60,7 +58,7 @@ action_space = spaces.Dict(
 # Agent for RT1
 @beartype
 class RT1Agent(Agent):
-    def __init__(self, weights_key: str, weights_path: str = '/simply_ws/src/RT-X/checkpoints/rtx1_custom1/step499.pt', **kwargs) -> None:
+    def __init__(self, weights_key: str, weights_path: str = '/simply_ws/src/RT-X/checkpoints/rtx1_custom3/step299.pt', **kwargs) -> None:
 
         self.weights_key = weights_key
 
@@ -85,17 +83,14 @@ class RT1Agent(Agent):
                 "cam_view": ["front"],
             }
 
-        args = copy.deepcopy(network_configs)
-
         # Modify network configuration based on specific settings
-        network_configs["time_sequence_length"] = args["time_sequence_length"]
-        network_configs["num_encoders"] = len(args["cam_view"])
+        network_configs["time_sequence_length"] = 6
+        network_configs["num_encoders"] = len(network_configs["cam_view"])
         network_configs["token_embedding_size"] = network_configs[
             "token_embedding_size_per_image"
         ] * len(network_configs["cam_view"])
         del network_configs["token_embedding_size_per_image"]
         del network_configs["cam_view"]
-        network_configs["using_proprioception"] = args["using_proprioception"]
         network_configs["input_tensor_space"] = state_space_list()[0]
         network_configs["output_tensor_space"] = action_space
 
@@ -111,27 +106,38 @@ class RT1Agent(Agent):
             self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
             if weights_path:
                 self.model.load_state_dict(torch.load(weights_path, map_location=self.device))
+            self.image_history = []  
+            for i in range(6):
+                self.image_history.append(torch.zeros(size=(224, 224, 3), dtype=torch.float, device=self.device))
+
         else:
             self.model: PyPolicy | TFPolicy = load_rt1(model_key=weights_key)
         self.step_num: int = 0
-        self.image_history = []  
-        for i in range(6):
-            self.image_history.append(np.zeros((224, 224, 3), dtype=np.uint8))
-
+   
         
 
     def act(self, instruction: str, image: npt.ArrayLike, reward: float = 0.0) -> RT1Action:
-        image = cv2.resize(np.array(image, dtype=np.uint8), (224, 224))
-        self.image_history.append(image)
-        if len(self.image_history) > 6:
-            self.image_history.pop(0)
-        images = np.stack(self.image_history)[None]
-        video = rearrange(images.to(self.device) * 1.0, 'b f h w c -> b f c h w')
         if self.weights_key == 'rt1pose':
-            obs = {'image': video, 'natural_language_embedding': repeat(np.array(embed_text(instruction, 1),'b n -> b f n', f=6) )}
+            image = cv2.resize(np.array(image, dtype=np.float32), (224, 224)) / 255.0
+            self.image_history.append(torch.tensor(image, dtype=torch.float, device=self.device))
+            if len(self.image_history) > 6:
+                self.image_history.pop(0)
+            images = torch.stack(self.image_history)[None]
+        
+            # for i, image in enumerate(self.image_history):
+            #     Image.fromarray(np.array(255 * images[0,i], dtype=np.uint8)).save('img{}.png'.format(i))
+
+            video = rearrange(images.to(self.device), 'b f h w c -> b f c h w')
+
+            obs = {'image': video[:,-1,:,:,:], 'natural_language_embedding': np.array(embed_text(instruction, 1))}
 
         
-    
+            # self.model.set_actions(dict_to_device({
+            #     'terminate_episode': repeat(torch.ones((video.shape[0]), dtype=torch.long), 'b -> b f', f=video.shape[1]),
+            #     'world_vector':    repeat(torch.zeros(1,3), 'b n  -> b f n', f=video.shape[1]),
+            #     'rotation_delta':  repeat(torch.zeros(1,3), 'b n  -> b f n', f=video.shape[1]),
+            #     'gripper_closedness_action': repeat(torch.zeros(1,1), 'b n  -> b f n', f=video.shape[1])
+            # }, self.device))
 
             action, network_state = self.model(
                 dict_to_device(obs, self.device),
@@ -139,8 +145,19 @@ class RT1Agent(Agent):
             )
 
             self.policy_state = network_state
+            action['gripper_closedness_action'] =  action['gripper_closedness_action'] * 2 - 1
+
+            if self.step_num == 0:
+                action['gripper_closedness_action'][0] = 1.0
             print(action)
         else:
+            # if self.weights_key == 'rt1x':
+            #     image = image / 255.0
+            # if self.step_num == 0:
+            #     for i in range(12):
+            #         action, next_state, _ = inference(instruction, image, self.step_num, reward, self.model, self.policy_state)
+            #         self.policy_state = next_state
+            image = np.array(image, dtype=np.uint8)
             action, next_state, _ = inference(instruction, image, self.step_num, reward, self.model, self.policy_state)
             self.policy_state = next_state
 

@@ -53,6 +53,9 @@ class InferenceServer:
 
         self.dummy: bool = dummy
         model_type, variant = model_str.split('/')
+        if 'model_type' in kwargs:
+            model_type = kwargs['model_type']
+            del kwargs['model_type']
 
         if dummy:
             self.action = InvertingDummyAction(REGISTRY[model_type]['action']())

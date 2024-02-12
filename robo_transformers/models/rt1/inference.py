@@ -161,11 +161,11 @@ def format_images(images: np.ndarray | list[np.ndarray]) -> tf.Tensor:
 
     out = []
     for image in images:
-        image = tf.convert_to_tensor(image, dtype=tf.uint8)
+        image = tf.convert_to_tensor(image)
         image = tf.image.resize_with_pad(
             image, target_width=WIDTH, target_height=HEIGHT
         )
-        image = tf.reshape(image, (1, HEIGHT, WIDTH, 3))
+        image = tf.expand_dims(image, axis=0)
         image = tf.cast(image, dtype=tf.uint8)
         out.append(image)
     return tf.concat(out, 0)
@@ -224,6 +224,8 @@ def inference(
 
     if terminate:
         time_step = ts.termination(observation, reward)
+    elif step == 0:
+        time_step = ts.restart(observation, batch_size)
     else:
         time_step = ts.transition(observation, reward)
 
