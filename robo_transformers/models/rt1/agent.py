@@ -16,6 +16,7 @@ from robo_transformers.oxe_torch.rt1.maruya24_rt1.tokenizers.utils import batche
 from robo_transformers.oxe_torch.rt1.maruya24_rt1.transformer_network import TransformerNetwork
 from robo_transformers.oxe_torch.rt1.maruya24_rt1.transformer_network_test_set_up import state_space_list
 import copy
+from robo_transformers.recorder import Replayer
 from PIL import Image
 
 from gym import spaces
@@ -58,7 +59,7 @@ action_space = spaces.Dict(
 # Agent for RT1
 @beartype
 class RT1Agent(Agent):
-    def __init__(self, weights_key: str, weights_path: str = '/simply_ws/src/RT-X/checkpoints/rtx1_custom3/step299.pt', **kwargs) -> None:
+    def __init__(self, weights_key: str, weights_path: str = '/simply_ws/src/RT-X/checkpoints/step450.pt', **kwargs) -> None:
 
         self.weights_key = weights_key
 
@@ -105,6 +106,7 @@ class RT1Agent(Agent):
             )
             self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
             if weights_path:
+                print('Loading weights from ' + weights_path)
                 self.model.load_state_dict(torch.load(weights_path, map_location=self.device))
             self.image_history = []  
             for i in range(6):
@@ -118,11 +120,12 @@ class RT1Agent(Agent):
 
     def act(self, instruction: str, image: npt.ArrayLike, reward: float = 0.0) -> RT1Action:
         if self.weights_key == 'rt1pose':
-            image = cv2.resize(np.array(image, dtype=np.float32), (224, 224)) / 255.0
-            self.image_history.append(torch.tensor(image, dtype=torch.float, device=self.device))
+            image = cv2.resize(np.array(image, dtype=np.uint8), (224, 224)) 
+            self.image_history.append(torch.tensor(image / 255.0 , dtype=torch.float32, device=self.device))
             if len(self.image_history) > 6:
                 self.image_history.pop(0)
             images = torch.stack(self.image_history)[None]
+            print('instruction: ', instruction)
         
             # for i, image in enumerate(self.image_history):
             #     Image.fromarray(np.array(255 * images[0,i], dtype=np.uint8)).save('img{}.png'.format(i))
@@ -149,7 +152,14 @@ class RT1Agent(Agent):
 
             if self.step_num == 0:
                 action['gripper_closedness_action'][0] = 1.0
-            print(action)
+            
+            if self.replayer is not None:
+                action = next(self.replayer)
+                print(action)
+                return RT1Action(world_vector=np.array([action['x'], action['y'], action['z']]), rotation_delta=np.array([action['roll'], action['pitch'], action['yaw']]), gripper_closedness_action=np.array(action['grasp']))
+            else:
+                print(action)
+                return RT1Action.from_numpy_dict(action)
         else:
             # if self.weights_key == 'rt1x':
             #     image = image / 255.0
@@ -160,7 +170,7 @@ class RT1Agent(Agent):
             image = np.array(image, dtype=np.uint8)
             action, next_state, _ = inference(instruction, image, self.step_num, reward, self.model, self.policy_state)
             self.policy_state = next_state
+            return RT1Action.from_numpy_dict(action)
 
         self.step_num += 1
-        return RT1Action.from_numpy_dict(action)
-
+        return RT1Action(world_vector=np.array([action['x'], action['y'], action['z']]), rotation_delta=np.array([action['roll'], action['pitch'], action['yaw']]), gripper_closedness_action=np.array(action['grasp']))

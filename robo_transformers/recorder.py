@@ -4,13 +4,13 @@ from h5py import string_dtype
 import numpy as np
 import os
 from gym.spaces import Dict
-from robo_transformers.spaces.common import EEF_ACTION_SPACE, BASIC_VISION_LANGUAGE_OBSERVATION_SPACE
+from robo_transformers.spaces.common import EEF_ACTION_SPACE, BASIC_VISION_LANGUAGE_OBSERVATION_SPACE, BASIC_BIMANUAL_ACTION_SPACE
 from robo_transformers.spaces.util import apply_fn
 
 
 
 class Recorder:
-    def __init__(self, name: str, data_dir: str = 'episodes', observation_space: Dict = BASIC_VISION_LANGUAGE_OBSERVATION_SPACE, action_space: Dict = EEF_ACTION_SPACE, num_steps: int = 10):
+    def __init__(self, name: str, data_dir: str = 'episodes', observation_space: Dict = BASIC_VISION_LANGUAGE_OBSERVATION_SPACE, action_space: Dict = BASIC_BIMANUAL_ACTION_SPACE, num_steps: int = 10):
         if not os.path.exists(data_dir):
             os.makedirs(data_dir)
 
@@ -63,7 +63,7 @@ class Recorder:
         self.file.close()
 
 class Replayer:
-    def __init__(self, name: str, data_dir: str = 'episodes', observation_space: Dict = BASIC_VISION_LANGUAGE_OBSERVATION_SPACE, action_space: Dict = EEF_ACTION_SPACE):
+    def __init__(self, name: str, data_dir: str = 'episodes', observation_space: Dict = BASIC_VISION_LANGUAGE_OBSERVATION_SPACE, action_space: Dict = BASIC_BIMANUAL_ACTION_SPACE):
         name = os.path.join(data_dir, name)
         self.file = h5py.File(name + ".hdf5", "r")
         self.size = self.file.attrs['size']
@@ -85,12 +85,21 @@ class Replayer:
             self.index += 1
             i = self.index
 
-            observation = apply_fn(self.observation_space, lambda k: self.file[k][i], prefix='observation')
-            action = apply_fn(self.action_space, lambda k: self.file[k][i], prefix='action')
-            reward = self.file['reward'][i]
-            done = self.file['done'][i]
-
-            return observation, action, reward, done
+            # observation = apply_fn(self.observation_space, lambda k: self.file[k][i], prefix='observation')
+            # action = apply_fn(self.action_space, lambda k: self.file[k][i], prefix='action')
+            # reward = self.file['reward'][i]
+            # done = self.file['done'][i]
+            action = {
+                    'x': self.file['action/left_hand/x'][i],
+                    'y': self.file['action/left_hand/y'][i],
+                    'z': self.file['action/left_hand/z'][i],
+                    'roll': self.file['action/left_hand/roll'][i],
+                    'pitch': self.file['action/left_hand/pitch'][i],
+                    'yaw': self.file['action/left_hand/yaw'][i],
+                    'grasp': self.file['action/left_hand/grasp'][i],
+                  
+            }
+            return action
 
 
 

@@ -7,7 +7,7 @@ import numpy as np
 import numpy.typing as npt
 from beartype import beartype
 import math
-from robo_transformers.recorder import Recorder
+from robo_transformers.recorder import Recorder, Replayer
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
@@ -19,6 +19,7 @@ class TeleOpAgent(Agent):
         xyz_step: float = 0.01,
         rpy_step: float = math.pi / 8,
         record_dir: str = "episodes",
+        weights_key: str = "",
     ) -> None:
         """Agent for octo model.
 
@@ -28,8 +29,9 @@ class TeleOpAgent(Agent):
         """
         self.xyz_step = xyz_step
         self.rpy_step = rpy_step
-        self.recorder = Recorder("episode1", data_dir=record_dir)
-        # self.replayer = Replayer("episode1", data_dir="episodes")
+        self.recorder = None
+        # self.recorder = Recorder("episode4", data_dir=record_dir)
+        self.replayer = Replayer("episode0", data_dir="episodes")
     
     def process_input(self):
         value = input(
@@ -95,8 +97,8 @@ class TeleOpAgent(Agent):
         image = cv2.resize(np.array(image, dtype=np.uint8), (224, 224))
         if image_wrist is not None:
             image_wrist = cv2.resize(np.array(image_wrist, dtype=np.uint8), (128, 128))
-
-        action, reward, done = self.process_input()
+        action = next(self.replayer)
+        # action, reward, done = self.process_input()
         # if sum(action) == 0:
         #     print('replaying')
         #     action = next(self.replayer)
@@ -104,45 +106,46 @@ class TeleOpAgent(Agent):
         #     next(self.replayer)
 
         print("action: ", action)
-        self.recorder.record(
-            observation={
-                "image_head": image,
-                "image_wrist_left": image_wrist,
-                "language_instruction": instruction.encode(),
-            },
-            action={
-                "left_hand": {
-                    "x": action[0],
-                    "y": action[1],
-                    "z": action[2],
-                    "roll": action[3],
-                    "pitch": action[4],
-                    "yaw": action[5],
-                    "grasp": action[6],
-                    "encoding": 0
-                }
-            },
-            reward=reward,
-            done=done,
-        )
-        if done:
-            actions = np.array(
-                [
-                    np.array(
-                        [
-                            self.recorder.file["action/left_hand/x"][i],
-                            self.recorder.file["action/left_hand/y"][i],
-                            self.recorder.file["action/left_hand/z"][i],
-                            self.recorder.file["action/left_hand/roll"][i],
-                            self.recorder.file["action/left_hand/pitch"][i],
-                            self.recorder.file["action/left_hand/yaw"][i],
-                            self.recorder.file["action/left_hand/grasp"][i],
-                        ]
-                    )
-                    for i in range(self.recorder.file.attrs["size"])])
- 
-            print(f"mean: {np.mean(actions, axis=0)}")
-            print(f"std: {np.std(actions, axis=0)}")
-            self.recorder.close()
+        if self.recorder:
+            self.recorder.record(
+                observation={
+                    "image_primary": image,
+                    "image_secondary": image_wrist,
+                    "language_instruction": instruction.encode(),
+                },
+                action={
+                    "left_hand": {
+                        "x": action[0],
+                        "y": action[1],
+                        "z": action[2],
+                        "roll": action[3],
+                        "pitch": action[4],
+                        "yaw": action[5],
+                        "grasp": action[6],
+                        "control_type": 0
+                    }
+                },
+                reward=reward,
+                done=done,
+            )
+            if done:
+                actions = np.array(
+                    [
+                        np.array(
+                            [
+                                self.recorder.file["action/left_hand/x"][i],
+                                self.recorder.file["action/left_hand/y"][i],
+                                self.recorder.file["action/left_hand/z"][i],
+                                self.recorder.file["action/left_hand/roll"][i],
+                                self.recorder.file["action/left_hand/pitch"][i],
+                                self.recorder.file["action/left_hand/yaw"][i],
+                                self.recorder.file["action/left_hand/grasp"][i],
+                            ]
+                        )
+                        for i in range(self.recorder.file.attrs["size"])])
+    
+                self.recorder.file.attrs["mean"] = np.mean(actions, axis=0)
+                self.recorder.file.attrs["std"] = np.std(actions, axis=0)
+                self.recorder.close()
         
-        return OctoAction(*action)
+        return OctoAction(**action)

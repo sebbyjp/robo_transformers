@@ -85,6 +85,7 @@ class OctoAgent(Agent):
         else:
             print('Using buffer')
         action = self.output_buffer.pop(0)
+        action[-1] = action[-1] * 2 - 1
         return OctoAction(x=float(action[0]), y=float(action[1]), z=float(action[2]), roll=float(action[3]), pitch=float(action[4]), yaw=float(action[5]), grasp=float(action[6]))
         # rt1_action = RT1Action(world_vector = action[0:3], rotation_delta=action[3:6], gripper_closedness_action=np.array(action[6]))
         #   action = np.sum(np.array(actions), axis = 0).squeeze()
