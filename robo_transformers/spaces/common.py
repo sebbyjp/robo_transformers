@@ -18,28 +18,28 @@ EEF_ACTION_SPACE = Dict({
         'pitch': Box(low=-1, high=1, shape=(), dtype=float),
         'yaw': Box(low=-1, high=1, shape=(), dtype=float),
         'grasp': Box(low=-1, high=1, shape=(), dtype=float),
-        # 'encoding': Discrete(len(ActionControl)), # POSE_DELTA, VELOCITY, EFFORT
+        'control_type': Discrete(len(ActionControl)), # POSE_DELTA, VELOCITY, EFFORT
     })
 
 
 
 BASIC_BIMANUAL_ACTION_SPACE = Dict({
     'left_hand': EEF_ACTION_SPACE,
-    # 'right_hand': EEF_ACTION_SPACE,
-    # 'base_displacement':  Dict({
-    #     'x': Box(low=-1, high=1, shape=(), dtype=float),
-    #     'y': Box(low=-1, high=1, shape=(), dtype=float),
-    #     'encoding': Discrete(len(ActionControl)), # POSE_DELTA, VELOCITY, EFFORT
-    # }),
-    # 'vertical_rotation': Dict({
-    #     'yaw': Box(low=-3.14, high=3.14, shape=(), dtype=float),
-    #     'encoding': Discrete(len(ActionControl)), # POSE_DELTA, VELOCITY, EFFORT
-    # })
+    'right_hand': EEF_ACTION_SPACE,
+    'base_displacement':  Dict({
+        'x': Box(low=-1, high=1, shape=(), dtype=float),
+        'y': Box(low=-1, high=1, shape=(), dtype=float),
+        'control_type': Discrete(len(ActionControl)), # POSE_DELTA, VELOCITY, EFFORT
+    }),
+    'vertical_rotation': Dict({
+        'yaw': Box(low=-3.14, high=3.14, shape=(), dtype=float),
+        'control_type': Discrete(len(ActionControl)), # POSE_DELTA, VELOCITY, EFFORT
+    })
 })
 
 
 BASIC_VISION_LANGUAGE_OBSERVATION_SPACE =  Dict({
-    'image_head': Box(low=0, high=255, shape=(224,224,3), dtype=np.uint8),
-    'image_wrist': Box(low=0, high=255, shape=(128,128,3), dtype=np.uint8),
+    'image_primary': Box(low=0, high=255, shape=(224,224,3), dtype=np.uint8),
+    'image_secondary': Box(low=0, high=255, shape=(128,128,3), dtype=np.uint8),
     'language_instruction': Text(100),
 })

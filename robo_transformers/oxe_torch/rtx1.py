@@ -754,6 +754,7 @@ class RT1Config:
         token_learner_num_output_tokens=8,
         cond_drop_prob=0.1,
         use_attn_conditioner=False,
+        causal_attention=False,
     ):
         """Configuration class to store the configuration of a `RT1`.
 
@@ -768,6 +769,7 @@ class RT1Config:
             token_learner_num_output_tokens (int): Number of output tokens for the token learner
             cond_drop_prob (float): Dropout probability
             use_attn_conditioner (bool): Whether to use the attention conditioner
+            causal_attention (bool): Whether to use causal attention. Defaults to False.
         """
         self.num_actions = num_actions
         self.action_bins = action_bins
@@ -781,6 +783,7 @@ class RT1Config:
         )
         self.cond_drop_prob = cond_drop_prob
         self.use_attn_conditioner = use_attn_conditioner
+        self.causal_attention = causal_attention
 
 
 @beartype
@@ -794,12 +797,16 @@ class RT1(nn.Module):
         super().__init__()
         self.vit = vit
         self.num_vit_stages = len(vit.cond_hidden_dims)
+        self.causal_attention = config.causal_attention
 
         film_layer = (
             FilmAttentionTextConditioner
             if config.use_attn_conditioner
             else FilmTextConditioner
         )
+
+        if config.use_attn_conditioner:
+            conditioner_kwargs["flash"] = False
 
         self.conditioner = film_layer(
             hidden_dims=(
@@ -811,7 +818,6 @@ class RT1(nn.Module):
                 *((False,) * config.depth * 2),
             ),
             cond_drop_prob=config.cond_drop_prob,
-            flash=False,
             **conditioner_kwargs,
         )
 
@@ -895,16 +901,18 @@ class RT1(nn.Module):
         )
 
         # causal attention mask
-
-        attn_mask = torch.ones(
-            (frames, frames), dtype=torch.bool, device=device
-        ).triu(1)
-        attn_mask = repeat(
-            attn_mask,
-            "i j -> (i r1) (j r2)",
-            r1=self.num_learned_tokens,
-            r2=self.num_learned_tokens,
-        )
+        if self.causal_attention:
+            attn_mask = ~torch.ones(
+                (frames, frames), dtype=torch.bool, device=device
+            ).triu(1)
+            attn_mask = repeat(
+                attn_mask,
+                "i j -> (i r1) (j r2)",
+                r1=self.num_learned_tokens,
+                r2=self.num_learned_tokens,
+            )
+        else:
+            attn_mask = None
 
         # sinusoidal positional embedding
 
@@ -924,7 +932,7 @@ class RT1(nn.Module):
         attended_tokens = self.transformer(
             learned_tokens,
             cond_fns=transformer_cond_fns,
-            attn_mask=~attn_mask,
+            attn_mask=attn_mask,
         )
 
         pooled = reduce(

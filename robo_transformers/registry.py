@@ -3,7 +3,7 @@ from robo_transformers.models.rt1.agent import RT1Agent
 from robo_transformers.models.octo.action import OctoAction
 from robo_transformers.models.octo.agent import OctoAgent
 from robo_transformers.models.teleop import TeleOpAgent
-# from robo_transformers.models.rtdiffusion.agent import RTDiffusion
+from robo_transformers.models.rtdiffusion.agent import RTDiffusion
 from robo_transformers.spaces.common import EEF_ACTION_SPACE
 from robo_transformers.spaces.common import BASIC_VISION_LANGUAGE_OBSERVATION_SPACE as VLA_SPACE
 
@@ -21,7 +21,12 @@ REGISTRY = {
     },
     "teleop": {
         "agent": TeleOpAgent,
-        "action": RT1Action,
+        "action": OctoAction,
         "weight_keys": []
+    },
+    "rtdiffusion": {
+        "agent": RTDiffusion,
+        "action": RT1Action,
+        "weight_keys": ["rtdiffusion"]
     }
 }

@@ -59,7 +59,7 @@ action_space = spaces.Dict(
 # Agent for RT1
 @beartype
 class RT1Agent(Agent):
-    def __init__(self, weights_key: str, weights_path: str = '/simply_ws/src/RT-X/checkpoints/step450.pt', **kwargs) -> None:
+    def __init__(self, weights_key: str, weights_path: str = '/simply_ws/src/RT-X/checkpoints/rt1_teleop_step2000.pt', **kwargs) -> None:
 
         self.weights_key = weights_key
 
@@ -148,18 +148,17 @@ class RT1Agent(Agent):
             )
 
             self.policy_state = network_state
-            action['gripper_closedness_action'] =  action['gripper_closedness_action'] * 2 - 1
+            action['gripper_closedness_action'] = (action['gripper_closedness_action'] * 2) - 1
+            # action['world_vector'] = action['world_vector'] + 0.003922
+            # action['rotation_delta'] = action['rotation_delta'] +0.012320
 
-            if self.step_num == 0:
-                action['gripper_closedness_action'][0] = 1.0
+
+            # if self.step_num == 0:
+            #     action['gripper_closedness_action'][0] = 1.0
             
-            if self.replayer is not None:
-                action = next(self.replayer)
-                print(action)
-                return RT1Action(world_vector=np.array([action['x'], action['y'], action['z']]), rotation_delta=np.array([action['roll'], action['pitch'], action['yaw']]), gripper_closedness_action=np.array(action['grasp']))
-            else:
-                print(action)
-                return RT1Action.from_numpy_dict(action)
+        
+            print(action)
+            # return RT1Action.from_numpy_dict(action)
         else:
             # if self.weights_key == 'rt1x':
             #     image = image / 255.0
@@ -170,7 +169,13 @@ class RT1Agent(Agent):
             image = np.array(image, dtype=np.uint8)
             action, next_state, _ = inference(instruction, image, self.step_num, reward, self.model, self.policy_state)
             self.policy_state = next_state
-            return RT1Action.from_numpy_dict(action)
+            action = RT1Action.from_numpy_dict(action)
+            # if self.step_num == 0:
+            #     action.gripper_closedness_action[0] = 1.0
+            self.step_num += 1
+            return action
+  
 
         self.step_num += 1
-        return RT1Action(world_vector=np.array([action['x'], action['y'], action['z']]), rotation_delta=np.array([action['roll'], action['pitch'], action['yaw']]), gripper_closedness_action=np.array(action['grasp']))
+        return RT1Action.from_numpy_dict(action)
+        # return RT1Action(world_vector=np.array([action['x'], action['y'], action['z']]), rotation_delta=np.array([action['roll'], action['pitch'], action['yaw']]), gripper_closedness_action=np.array(action['grasp']))

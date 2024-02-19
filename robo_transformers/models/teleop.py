@@ -30,8 +30,9 @@ class TeleOpAgent(Agent):
         self.xyz_step = xyz_step
         self.rpy_step = rpy_step
         self.recorder = None
-        # self.recorder = Recorder("episode4", data_dir=record_dir)
-        self.replayer = Replayer("episode0", data_dir="episodes")
+        self.recorder = Recorder("pick_coke_can_place_left_of_spoon", data_dir=record_dir)
+        # self.replayer = Replayer("episode0", data_dir="episodes")
+        self.last_grasp = 0
     
     def process_input(self):
         value = input(
@@ -97,8 +98,8 @@ class TeleOpAgent(Agent):
         image = cv2.resize(np.array(image, dtype=np.uint8), (224, 224))
         if image_wrist is not None:
             image_wrist = cv2.resize(np.array(image_wrist, dtype=np.uint8), (128, 128))
-        action = next(self.replayer)
-        # action, reward, done = self.process_input()
+        # action = next(self.replayer)
+        action, reward, done = self.process_input()
         # if sum(action) == 0:
         #     print('replaying')
         #     action = next(self.replayer)
@@ -107,6 +108,10 @@ class TeleOpAgent(Agent):
 
         print("action: ", action)
         if self.recorder:
+            # Convert absolute grasp to relative grasp.
+            grasp = (action[6] + 1) /2.  if action[6] != 0 else self.last_grasp
+            print('recording grasp: ', grasp)
+            self.last_grasp = grasp
             self.recorder.record(
                 observation={
                     "image_primary": image,
@@ -121,7 +126,7 @@ class TeleOpAgent(Agent):
                         "roll": action[3],
                         "pitch": action[4],
                         "yaw": action[5],
-                        "grasp": action[6],
+                        "grasp": grasp,
                         "control_type": 0
                     }
                 },
@@ -148,4 +153,4 @@ class TeleOpAgent(Agent):
                 self.recorder.file.attrs["std"] = np.std(actions, axis=0)
                 self.recorder.close()
         
-        return OctoAction(**action)
+        return OctoAction(*action)

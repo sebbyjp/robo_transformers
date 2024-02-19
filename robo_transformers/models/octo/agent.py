@@ -15,13 +15,13 @@ os.environ['TOKENIZERS_PARALLELISM'] = 'false'
 
 @beartype
 class OctoAgent(Agent):
-    def __init__(self, weights_key: str = 'octo-small', window_size: int = 2, num_future_actions: int = 3) -> None:
+    def __init__(self, weights_key: str = 'octo-small', window_size: int = 2, num_additional_future_actions: int = 3) -> None:
         '''Agent for octo model.
 
         Args:
             weights_key (str, optional): octo-small or octo-base. Defaults to 'octo-small'.
             window_size (int, optional): Number of past observations to use for inference. Must be <= 2. Defaults to 2.
-            num_future_actions (int, optional): Number of future actions to return. Defaults to 1.
+            num_additional_future_actions (int, optional): Number of additional future actions to return. Defaults to 0.
         '''
         print('Loading from {}'.format(weights_key))
         self.model: OctoModel = OctoModel.load_pretrained("hf://rail-berkeley/" + weights_key)
@@ -29,8 +29,8 @@ class OctoAgent(Agent):
         self.image_wrist_history = [] # Chronological order.    
         self.window_size = window_size
         self.output_buffer = []
-        assert num_future_actions in [1,2,3,4] # Max actions returned by model.
-        self.num_future_actions = num_future_actions
+        assert num_additional_future_actions in [0,1,2,3,4] # Max actions returned by model.
+        self.num_predicted_actions = 1 + num_additional_future_actions
 
 
     
@@ -80,12 +80,15 @@ class OctoAgent(Agent):
                 # std_action = np.array([0.045,0.031, 0.015, 0.02, 0.02, 0.02, 10.0])
             actions = norm_actions * std_action + mean_action
 
-            for a in actions[:self.num_future_actions]:
+            for a in actions[:self.num_predicted_actions]:
                 self.output_buffer.append(np.array(a).squeeze())
         else:
             print('Using buffer')
         action = self.output_buffer.pop(0)
+
+        # Convert absolute grasp to relative grasp
         action[-1] = action[-1] * 2 - 1
+
         return OctoAction(x=float(action[0]), y=float(action[1]), z=float(action[2]), roll=float(action[3]), pitch=float(action[4]), yaw=float(action[5]), grasp=float(action[6]))
         # rt1_action = RT1Action(world_vector = action[0:3], rotation_delta=action[3:6], gripper_closedness_action=np.array(action[6]))
         #   action = np.sum(np.array(actions), axis = 0).squeeze()
