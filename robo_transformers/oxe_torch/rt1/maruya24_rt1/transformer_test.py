@@ -20,7 +20,7 @@
 import unittest
 import torch
 
-from maruya24_rt1.transformer import Transformer
+from robo_transformers.oxe_torch.rt1.maruya24_rt1.transformer import Transformer
 from absl.testing import parameterized
 
 class TransformerTest(parameterized.TestCase, unittest.TestCase):

@@ -17,10 +17,10 @@
 
 # You can find the original code from here[https://github.com/google-research/robotics_transformer].
 
-from oxe_torch.rt1.maruya24_rt1.tokenizers import action_tokenizer
-from oxe_torch.rt1.maruya24_rt1.tokenizers import image_tokenizer
-from oxe_torch.rt1.maruya24_rt1.transformer import Transformer
-from oxe_torch.rt1.maruya24_rt1.film_efficientnet import preprocessors
+from robo_transformers.oxe_torch.rt1.maruya24_rt1.tokenizers import action_tokenizer
+from robo_transformers.oxe_torch.rt1.maruya24_rt1.tokenizers import image_tokenizer
+from robo_transformers.oxe_torch.rt1.maruya24_rt1.transformer import Transformer
+from robo_transformers.oxe_torch.rt1.maruya24_rt1.film_efficientnet import preprocessors
 
 from typing import Optional, Tuple, Union, Any, Dict, List
 import numpy as np

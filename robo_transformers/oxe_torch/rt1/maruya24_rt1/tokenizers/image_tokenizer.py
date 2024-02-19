@@ -25,10 +25,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from oxe_torch.rt1.maruya24_rt1.film_efficientnet.pretrained_efficientnet_encoder import (
+from robo_transformers.oxe_torch.rt1.maruya24_rt1.film_efficientnet.pretrained_efficientnet_encoder import (
     EfficientNetEncoder,
 )
-from oxe_torch.rt1.maruya24_rt1.tokenizers.token_learner import TokenLearnerModule
+from robo_transformers.oxe_torch.rt1.maruya24_rt1.tokenizers.token_learner import TokenLearnerModule
 
 
 class RT1ImageTokenizer(nn.Module):

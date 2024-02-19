@@ -18,8 +18,8 @@
 # You can find the original code from here[https://github.com/google-research/robotics_transformer].
 
 
-from pytorch_robotics_transformer.film_efficientnet import film_efficientnet_encoder
-from pytorch_robotics_transformer.film_efficientnet import pretrained_efficientnet_encoder as eff
+from robo_transformers.oxe_torch.rt1.maruya24_rt1.film_efficientnet import film_efficientnet_encoder
+from robo_transformers.oxe_torch.rt1.maruya24_rt1.film_efficientnet import pretrained_efficientnet_encoder as eff
 import unittest
 import numpy as np
 from skimage import data

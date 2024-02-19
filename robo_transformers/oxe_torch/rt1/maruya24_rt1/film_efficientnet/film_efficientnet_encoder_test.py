@@ -27,7 +27,7 @@ import numpy as np
 from torchvision import transforms
 import matplotlib.pyplot as plt
 
-from pytorch_robotics_transformer.film_efficientnet.film_efficientnet_encoder import EfficientNetB3, ILSVRCPredictor
+from robo_transformers.oxe_torch.rt1.maruya24_rt1.film_efficientnet.film_efficientnet_encoder import EfficientNetB3, ILSVRCPredictor
 
 
 # If you want run this test, move to the directory above pytorch_robotics_transformer directory, type below command on terminal.

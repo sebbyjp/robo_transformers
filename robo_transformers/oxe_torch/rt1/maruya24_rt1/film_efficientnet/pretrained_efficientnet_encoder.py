@@ -29,8 +29,8 @@ import torch
 import torch.nn as nn
 from typing import Optional
 
-from oxe_torch.rt1.maruya24_rt1.film_efficientnet.film_efficientnet_encoder import EfficientNetB3
-from oxe_torch.rt1.maruya24_rt1.film_efficientnet.film_conditioning_layer import FilmConditioning
+from robo_transformers.oxe_torch.rt1.maruya24_rt1.film_efficientnet.film_efficientnet_encoder import EfficientNetB3
+from robo_transformers.oxe_torch.rt1.maruya24_rt1.film_efficientnet.film_conditioning_layer import FilmConditioning
 
 
 class EfficientNetEncoder(nn.Module):

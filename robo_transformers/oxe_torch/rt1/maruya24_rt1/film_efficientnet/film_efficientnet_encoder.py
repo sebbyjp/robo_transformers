@@ -29,7 +29,7 @@ from torchvision.ops import StochasticDepth
 from torchvision.ops.misc import Conv2dNormActivation
 import numpy as np
 
-from oxe_torch.rt1.maruya24_rt1.film_efficientnet.film_conditioning_layer import FilmConditioning
+from robo_transformers.oxe_torch.rt1.maruya24_rt1.film_efficientnet.film_conditioning_layer import FilmConditioning
 
 
 # This is based on Table 1 in a EfficientNet paper.
