@@ -7,7 +7,6 @@ tensorflow == 2.15.0
 gdown == 4.7.1
 pillow == 10.1.0
 tensorflow-hub == 0.15.0
-tf-agents == 0.19.0
 importlib-resources == 6.1.1
 protobuf ==4.23.4
 beartype == 0.16.4
