@@ -83,6 +83,7 @@ class InferenceServer:
         Returns:
             dict: See RT1Action for details.
         '''
+        # print('kwargs', kwargs)
         image: ArrayLike = kwargs.get('image')
         if image is not None and save:
             Image.fromarray(np.array(image, dtype=np.uint8)).save("rt1_saved_image.png")

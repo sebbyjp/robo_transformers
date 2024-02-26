@@ -1,0 +1,34 @@
+{
+  "python.autoComplete.extraPaths": [
+    "/mbodi_ws/install/ros2_agents_interfaces/local/lib/python3.10/dist-packages",
+    "/mbodi_ws/build/interbotix_xs_modules",
+    "/mbodi_ws/install/interbotix_xs_modules/lib/python3.10/site-packages",
+    "/mbodi_ws/build/interbotix_common_modules",
+    "/mbodi_ws/install/interbotix_common_modules/lib/python3.10/site-packages",
+    "/mbodi_ws/install/dgl_ros_interfaces/local/lib/python3.10/dist-packages",
+    "/dependencies_ws/install/moveit_task_constructor_msgs/local/lib/python3.10/dist-packages",
+    "/dependencies_ws/install/moveit_msgs/local/lib/python3.10/dist-packages",
+    "/dependencies_ws/build/moveit_configs_utils",
+    "/dependencies_ws/install/moveit_configs_utils/lib/python3.10/site-packages",
+    "/dependencies_ws/install/kobuki_ros_interfaces/local/lib/python3.10/dist-packages",
+    "/dependencies_ws/install/interbotix_xs_msgs/local/lib/python3.10/dist-packages",
+    "/opt/ros/humble/lib/python3.10/site-packages",
+    "/opt/ros/humble/local/lib/python3.10/dist-packages"
+  ],
+  "python.analysis.extraPaths": [
+    "/mbodi_ws/install/ros2_agents_interfaces/local/lib/python3.10/dist-packages",
+    "/mbodi_ws/build/interbotix_xs_modules",
+    "/mbodi_ws/install/interbotix_xs_modules/lib/python3.10/site-packages",
+    "/mbodi_ws/build/interbotix_common_modules",
+    "/mbodi_ws/install/interbotix_common_modules/lib/python3.10/site-packages",
+    "/mbodi_ws/install/dgl_ros_interfaces/local/lib/python3.10/dist-packages",
+    "/dependencies_ws/install/moveit_task_constructor_msgs/local/lib/python3.10/dist-packages",
+    "/dependencies_ws/install/moveit_msgs/local/lib/python3.10/dist-packages",
+    "/dependencies_ws/build/moveit_configs_utils",
+    "/dependencies_ws/install/moveit_configs_utils/lib/python3.10/site-packages",
+    "/dependencies_ws/install/kobuki_ros_interfaces/local/lib/python3.10/dist-packages",
+    "/dependencies_ws/install/interbotix_xs_msgs/local/lib/python3.10/dist-packages",
+    "/opt/ros/humble/lib/python3.10/site-packages",
+    "/opt/ros/humble/local/lib/python3.10/dist-packages"
+  ]
+}

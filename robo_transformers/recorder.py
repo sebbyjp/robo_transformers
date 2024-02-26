@@ -1,4 +1,3 @@
-
 import h5py
 from h5py import string_dtype
 import numpy as np
@@ -6,108 +5,119 @@ import os
 from gym.spaces import Dict
 from robo_transformers.spaces.common import EEF_ACTION_SPACE, BASIC_VISION_LANGUAGE_OBSERVATION_SPACE, BASIC_BIMANUAL_ACTION_SPACE
 from robo_transformers.spaces.util import apply_fn
-
+from datetime import datetime
 
 
 class Recorder:
-    def __init__(self, name: str, data_dir: str = 'episodes', observation_space: Dict = BASIC_VISION_LANGUAGE_OBSERVATION_SPACE, action_space: Dict = BASIC_BIMANUAL_ACTION_SPACE, num_steps: int = 10):
-        if not os.path.exists(data_dir):
-            os.makedirs(data_dir)
 
-        name = os.path.join(data_dir, name)
-        self.file = h5py.File(name + ".hdf5", "a")
+  def __init__(self,
+               name: str,
+               data_dir: str = 'episodes',
+               observation_space: Dict = BASIC_VISION_LANGUAGE_OBSERVATION_SPACE,
+               action_space: Dict = BASIC_BIMANUAL_ACTION_SPACE,
+               num_steps: int = 10):
+    if not os.path.exists(data_dir):
+      os.makedirs(data_dir)
 
-        self.file.create_group('observation')
-        for key, space in observation_space.items():
-            shape = (*space.shape,) if space.shape is not None else (num_steps,)
-            dtype = space.dtype if space.dtype != str else string_dtype()
-            self.file['observation'].create_dataset(key, (num_steps,*shape), dtype=dtype, maxshape=(None, *shape))
-        
-        self.file.create_group('action')
-        for key, space_dict in action_space.items():
-            self.file['action'].create_group(key)
-            for k, space in space_dict.items():
-                shape = (*space.shape,) if space.shape is not None else (num_steps,)
-                dtype = space.dtype if space.dtype != str else string_dtype()
-                self.file[f'action/{key}'].create_dataset(k, (num_steps,*shape), dtype=space.dtype, maxshape=(None, *shape))
+    name = os.path.join(data_dir, name)
+    if os.path.exists(name + ".hdf5"):
+      name = name + datetime.now().strftime("%Y%m%d%H%M%S")
+    self.file = h5py.File(name + ".hdf5", "a")
 
-        self.file.create_dataset('reward', (num_steps,), dtype=float, maxshape=(None,))
-        self.file.create_dataset('done', (num_steps,), dtype=bool, maxshape=(None,))
-        self.index = 0
+    self.file.create_group('observation')
+    for key, space in observation_space.items():
+      shape = (*space.shape,) if space.shape is not None else (num_steps,)
+      dtype = space.dtype if space.dtype != str else string_dtype()
+      self.file['observation'].create_dataset(key, (num_steps, *shape),
+                                              dtype=dtype,
+                                              maxshape=(None, *shape))
 
+    self.file.create_group('action')
+    for key, space_dict in action_space.items():
+      self.file['action'].create_group(key)
+      for k, space in space_dict.items():
+        shape = (*space.shape,) if space.shape is not None else (num_steps,)
+        dtype = space.dtype if space.dtype != str else string_dtype()
+        self.file[f'action/{key}'].create_dataset(k, (num_steps, *shape),
+                                                  dtype=space.dtype,
+                                                  maxshape=(None, *shape))
 
-    def record(self, observation: Dict, action: Dict, reward: float, done: bool):
-        for k, v in observation.items():
-            if self.index == len(self.file[f'observation/{k}']):
-                self.file[f'observation/{k}'].resize(self.index*2, axis=0)
-            self.file[f'observation/{k}'][self.index] = v
-        
-        for key, action_dict in action.items():
-            for k, v in action_dict.items():
-                if self.index == len(self.file[f'action/{key}/{k}']): 
-                    self.file[f'action/{key}/{k}'].resize(self.index*2, axis=0)
-                self.file[f'action/{key}/{k}'][self.index] = v
+    self.file.create_dataset('reward', (num_steps,), dtype=float, maxshape=(None,))
+    self.file.create_dataset('done', (num_steps,), dtype=bool, maxshape=(None,))
+    self.index = 0
 
-        if self.index == len(self.file['reward']): 
-                self.file['reward'].resize(self.index*2, axis=0)
-        self.file['reward'][self.index] = reward
+  def record(self, observation: Dict, action: Dict, reward: float, done: bool):
+    for k, v in observation.items():
+      if self.index == len(self.file[f'observation/{k}']):
+        self.file[f'observation/{k}'].resize(self.index * 2, axis=0)
+      self.file[f'observation/{k}'][self.index] = v
 
-        if self.index == len( self.file['done']):
-            self.file['done'].resize(self.index*2, axis=0)
-        self.file['done'][self.index] = done
+    for key, action_dict in action.items():
+      for k, v in action_dict.items():
+        if self.index == len(self.file[f'action/{key}/{k}']):
+          self.file[f'action/{key}/{k}'].resize(self.index * 2, axis=0)
+        self.file[f'action/{key}/{k}'][self.index] = v
 
-        self.index += 1
-        self.file.attrs['size'] = self.index
-    
-    def close(self):
-        self.file.close()
+    if self.index == len(self.file['reward']):
+      self.file['reward'].resize(self.index * 2, axis=0)
+    self.file['reward'][self.index] = reward
+
+    if self.index == len(self.file['done']):
+      self.file['done'].resize(self.index * 2, axis=0)
+    self.file['done'][self.index] = done
+
+    self.index += 1
+    self.file.attrs['size'] = self.index
+
+  def close(self):
+    self.file.close()
 
 class Replayer:
-    def __init__(self, name: str, data_dir: str = 'episodes', observation_space: Dict = BASIC_VISION_LANGUAGE_OBSERVATION_SPACE, action_space: Dict = BASIC_BIMANUAL_ACTION_SPACE):
-        name = os.path.join(data_dir, name)
-        self.file = h5py.File(name + ".hdf5", "r")
-        self.size = self.file.attrs['size']
+  def __init__(self, name: str, data_dir: str = 'episodes', observation_space: Dict = BASIC_VISION_LANGUAGE_OBSERVATION_SPACE, action_space: Dict = BASIC_BIMANUAL_ACTION_SPACE):
+    name = os.path.join(data_dir, name)
+    self.file = h5py.File(name + ".hdf5", "r")
+    self.size = self.file.attrs['size']
 
-        self.observation_space = observation_space
-        self.action_space = action_space
-        self.index = -1
-
-
-
-    def __iter__(self):
-        self.index = -1
-        return self
-
-    def __next__(self):
-        if self.index >= self.size:
-            raise StopIteration
-        else:
-            self.index += 1
-            i = self.index
-
-            # observation = apply_fn(self.observation_space, lambda k: self.file[k][i], prefix='observation')
-            # action = apply_fn(self.action_space, lambda k: self.file[k][i], prefix='action')
-            # reward = self.file['reward'][i]
-            # done = self.file['done'][i]
-            action = {
-                    'x': self.file['action/left_hand/x'][i],
-                    'y': self.file['action/left_hand/y'][i],
-                    'z': self.file['action/left_hand/z'][i],
-                    'roll': self.file['action/left_hand/roll'][i],
-                    'pitch': self.file['action/left_hand/pitch'][i],
-                    'yaw': self.file['action/left_hand/yaw'][i],
-                    'grasp': self.file['action/left_hand/grasp'][i],
-                  
-            }
-            return action
+    self.observation_space = observation_space
+    self.action_space = action_space
+    self.index = -1
 
 
 
-    def close(self):
-        self.file.close()
+  def __iter__(self):
+    self.index = -1
+    return self
+
+  def __next__(self):
+    if self.index >= self.size:
+      raise StopIteration
+    else:
+      self.index += 1
+      i = self.index
+
+      # observation = apply_fn(self.observation_space, lambda k: self.file[k][i], prefix='observation')
+      # action = apply_fn(self.action_space, lambda k: self.file[k][i], prefix='action')
+      # reward = self.file['reward'][i]
+      # done = self.file['done'][i]
+      action = {
+              'x': self.file['action/left_hand/x'][i],
+              'y': self.file['action/left_hand/y'][i],
+              'z': self.file['action/left_hand/z'][i],
+              'roll': self.file['action/left_hand/roll'][i],
+              'pitch': self.file['action/left_hand/pitch'][i],
+              'yaw': self.file['action/left_hand/yaw'][i],
+              'grasp': self.file['action/left_hand/grasp'][i],
+
+      }
+      return action
 
 
-# 
+
+  def close(self):
+    self.file.close()
+
+
+#
 
 
 
@@ -126,7 +136,7 @@ class Replayer:
 #             'image_wrist': tf.zeros(shape=(224, 224, 3), dtype=tf.uint8),
 #             'joint_pos': tf.zeros(shape=(8,), dtype=tf.float32),
 #             'natural_language_instruction': " asdf"}
-        
+
 #         action_sample =  {'gripper_closedness_action': tf.zeros(shape=(1,), dtype=tf.float32),
 #             'terminate_episode': tf.zeros(shape=(3,), dtype=tf.int32),
 #             'world_vector': tf.zeros(shape=(3,), dtype=tf.float32),}
@@ -147,16 +157,13 @@ class Replayer:
 #             'image_wrist': tf.zeros(shape=(224, 224, 3), dtype=tf.uint8),
 #             'joint_pos': tf.zeros(shape=(8,), dtype=tf.float32),
 #             'natural_language_instruction': " asdf"}
-        
+
 #         action_sample =  {'gripper_closedness_action': tf.zeros(shape=(1,), dtype=tf.float32),
 #             'terminate_episode': tf.zeros(shape=(3,), dtype=tf.int32),
 #             'world_vector': tf.zeros(shape=(3,), dtype=tf.float32),}
-        
+
 #         # 2. log data
 #         self.logger(action_sample, obs_sample, 1.0, step_type=RLDSStepType.RESTART)
 #         self.logger(action_sample, obs_sample, 1.0)
 #         self.logger(action_sample, obs_sample, 1.0, step_type=RLDSStepType.TERMINATION)
 #         self.logger.close() # this is important to flush the current data to disk
-
-
-
