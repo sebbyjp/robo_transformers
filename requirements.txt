@@ -19,3 +19,4 @@ array-record
 classifier-free-guidance-pytorch
 octo @ git+https://github.com/sebbyjp/octo.git@peralta
 gym >= 0.26.2
+imageio[ffmpeg]

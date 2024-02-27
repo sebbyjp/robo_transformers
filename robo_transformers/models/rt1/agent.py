@@ -16,7 +16,7 @@ from robo_transformers.oxe_torch.rt1.maruya24_rt1.tokenizers.utils import batche
 from robo_transformers.oxe_torch.rt1.maruya24_rt1.transformer_network import TransformerNetwork
 from robo_transformers.oxe_torch.rt1.maruya24_rt1.transformer_network_test_set_up import state_space_list
 import copy
-from robo_transformers.recorder import Replayer
+from robo_transformers.replayer import Replayer
 from PIL import Image
 
 from gym import spaces
