@@ -5,7 +5,7 @@ torchvision
 pandas
 tensorflow == 2.15.0
 gdown == 4.7.1
-pillow == 10.1.0
+pillow == 10.1.0d
 tensorflow-hub == 0.15.0
 importlib-resources == 6.1.1
 protobuf ==4.23.4
@@ -19,4 +19,3 @@ array-record
 classifier-free-guidance-pytorch
 octo @ git+https://github.com/sebbyjp/octo.git@peralta
 gym >= 0.26.2
-imageio[ffmpeg]

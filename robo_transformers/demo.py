@@ -1,3 +1,4 @@
+from typing import Any
 import tensorflow as tf
 import numpy as np
 import PIL.Image as Image
@@ -8,8 +9,7 @@ import os
 import sys
 from pprint import pprint
 
-from robo_transformers.abstract.agent import Agent
-from robo_transformers.abstract.action import Action
+from robo_transformers.interface import Agent
 
 
 FLAGS = flags.FLAGS
@@ -53,7 +53,7 @@ def get_demo_images(output=None) -> np.ndarray:
     return images
 
 
-def run_demo(agent: Agent) -> list[Action]:
+def run_demo(agent: Agent) -> list[Any]:
 
     # Pass in an instruction through the --demo_instruction flag.
     actions = []

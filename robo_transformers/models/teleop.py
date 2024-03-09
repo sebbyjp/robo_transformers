@@ -1,13 +1,15 @@
-from robo_transformers.abstract.agent import Agent
-from robo_transformers.models.octo.action import OctoAction
-from typing import Optional
+from robo_transformers.interface import Agent, Control, Supervision
+from robo_transformers.data_util import Recorder
+from robo_transformers.common.observations import ImageInstruction
+from robo_transformers.common.actions import GripperBaseControl, GripperControl, GraspControl, PoseControl
+from typing import Any, Optional
 import os
 import cv2
 import numpy as np
 import numpy.typing as npt
 from beartype import beartype
 import math
-from robo_transformers.recorder import Recorder
+from gym import spaces
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
@@ -17,23 +19,31 @@ class TeleOpAgent(Agent):
 
   def __init__(
       self,
+      name: str,
+      data_dir: str = "episodes",
       xyz_step: float = 0.01,
       rpy_step: float = math.pi / 8,
-      record_dir: str = "episodes",
-      weights_key: str = "episode_name",
+      **kwargs
   ) -> None:
-    """Agent for octo model.
+    """Agent for teleop psudo model.
 
         Args:
-            xyz_step (float, optional): Step size for xyz. Defaults to 0.01.
+            xyz_step (float, optional): Step size for xyz. Defaults to 0.02.
             rpy_step (float, optional): Step size for rpy. Defaults to PI/8.
         """
+    if 'observation_space' in kwargs:
+      self.observation_space = kwargs['observation_space']
+   
+      del kwargs['observation_space']
+    if 'action_space' in kwargs:
+      self.action_space = kwargs['action_space']
+      del kwargs['action_space']
+    else:
+      self.observation_space = ImageInstruction(supervision_type=Supervision.BINARY).space()
+      self.action_space = GripperBaseControl().space()
     self.xyz_step = xyz_step
     self.rpy_step = rpy_step
-    self.recorder = Recorder(weights_key, data_dir=record_dir)
-    self.buffer = []
-    self.erased_last = False
-    self.last_erased = None
+    self.recorder = Recorder(name,out_dir=data_dir, observation_space=self.observation_space, action_space=self.action_space, **kwargs)
     self.last_grasp = 0
 
   def process_input(self):
@@ -55,109 +65,57 @@ class TeleOpAgent(Agent):
             shift+x = yaw right (-y)\n
             c = complete episode successfully\n
             f = finish episode with failure\n
-            E = erase last time step \n
-            - = decrease step size by factor of 5\n
-            + = increase step size by factor of 5\n
+            u = undo last action\n
 
             Type each command as many times as needed. Each will correspond to a single step (default xyz: 0.01, default rpy: PI/8.\n
             Press enter to continue.\n
             """)
-    should_save = True
+
     grasp = 0.
     if "q" in value:
       grasp = -1.
     elif "e" in value:
       grasp = 1.
-    else:
-      grasp = 0.
-    if "E" in value and len(self.buffer) > 0:
-      confirmation = input("""
-        WARNING: Detected E which means erase last time step. This action will be ignored. Press c to confirm or enter to cancel.\n
-        """
-      )
-      if "c" in confirmation:
-        confirmation = input("""
-          WARNING:  Should I send the reverse
-        of the erased action before recording continues to resume the same state? Y/n.\n
-          """
-        )
-        self.last_erased = self.buffer.pop()
-        if 'y' in confirmation.lower():
-          print("""
-            ***Note: Last time step was erased. Sending inverse of erased action.
-          """)
-          self.erased_last = True
-          return -self.last_erased[-3], 0, 0, False
+    reward = int("c" in value)
+    done = reward or "f" in value
 
-    reward = float("c" in value)
-    done = float(reward or "f" in value)
-
-    xyz_step = self.xyz_step
-    rpy_step = self.rpy_step
-    if "-" in value:
-      xyz_step /= 5.
-      rpy_step /= 5.
-    elif "+" in value:
-      xyz_step *= 5.
-      rpy_step *= 5.
-
-    xyz = xyz_step * np.array([
+    xyz = self.xyz_step * np.array([
         value.count("w") - value.count("s"),
         value.count("a") - value.count("d"),
         value.count("x") - value.count("z"),
     ])
-    rpy = rpy_step * np.array([
+    rpy = self.rpy_step * np.array([
         value.count("D") - value.count("A"),
         value.count("S") - value.count("W"),
         value.count("Z") - value.count("X"),
     ])
     action = np.concatenate([xyz, rpy, [grasp]])
-    return action, reward, done, should_save
+    return action, reward, done
 
   def act(
       self,
       instruction: str,
       image: npt.ArrayLike,
-      image_wrist: Optional[npt.ArrayLike] = None,
-  ) -> OctoAction:
-    image = cv2.resize(np.array(image, dtype=np.uint8), (224, 224))
-    if image_wrist is not None:
-      image_wrist = cv2.resize(np.array(image_wrist, dtype=np.uint8), (128, 128))
-    action, reward, done, should_save = self.process_input()
+  ) -> list[Any]:
+    # Create observation of past `window_size` number of observations
+    image = cv2.resize(np.array(image, dtype=np.uint8),(640, 480))
+    action, reward, done = self.process_input()
 
     print("action: ", action)
-    if len(self.buffer) > 0:
-      image, image_wrist, instruction, last_action, reward, done = self.buffer.pop()
-      print("recording action: ", last_action)
+    grasp = action[6]
 
-      # Convert absolute grasp to relative grasp.
-      grasp = (last_action[6] + 1) / 2. if last_action[6] != 0 else self.last_grasp
-      print('recording grasp: ', grasp)
-      self.last_grasp = grasp
-
-      self.recorder.record(
-          observation={
-              "image_primary": image,
-              "image_secondary": image_wrist,
-              "language_instruction": instruction.encode(),
-          },
-          action={
-              "left_hand": {
-                  "x": last_action[0],
-                  "y": last_action[1],
-                  "z": last_action[2],
-                  "roll": last_action[3],
-                  "pitch": last_action[4],
-                  "yaw": last_action[5],
-                  "grasp": grasp,
-                  "control_type": 0
-              }
-          },
-          reward=reward,
-          done=done,
-      )
-      if done:
-        self.recorder.close(save_frames=True, save_stats=True)
-    if should_save:
-      self.buffer.append((image, image_wrist, instruction, action, reward, done))
-    return OctoAction(*action)
+    # Convert absolute grasp to relative grasp.
+    if grasp == 0:
+      grasp = self.last_grasp
+    else:
+      grasp = (grasp + 1) / 2
+    print('recording grasp: ', grasp)
+    
+    self.last_grasp = grasp
+    action = GripperBaseControl(finish=done, left_gripper=GripperControl(pose=PoseControl(xyz=action[:3], rpy=action[3:6]), grasp=GraspControl(Control.ABSOLUTE, grasp_bounds=[0, 1.0])) )
+    self.recorder.record(
+        observation= ImageInstruction(instruction=instruction, image=image, supervision=reward, supervision_type=Supervision.BINARY).todict(),
+        action=action.todict(),
+    )
+   
+    return [action.todict()]

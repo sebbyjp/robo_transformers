@@ -1,15 +1,8 @@
-from robo_transformers.abstract.agent import Agent
-from robo_transformers.models.octo.action import OctoAction
-from typing import Optional
-import os
-import cv2
-import numpy as np
-import numpy.typing as npt
+from robo_transformers.interface.agent import Agent
+from typing import Any, Optional
+from gym import spaces
 from beartype import beartype
-import math
-from robo_transformers.replayer import Replayer
-
-os.environ["TOKENIZERS_PARALLELISM"] = "false"
+from robo_transformers.data_util import Replayer
 
 
 @beartype
@@ -17,8 +10,10 @@ class ReplayAgent(Agent):
 
   def __init__(
       self,
-      record_dir: str = "episodes",
-      weights_key: str = "episode_name",
+      from_path: str,
+      action_space: spaces.Space,
+      observation_space: spaces.Space,
+      **kwargs
   ) -> None:
     """Agent for octo model.
 
@@ -26,17 +21,13 @@ class ReplayAgent(Agent):
             xyz_step (float, optional): Step size for xyz. Defaults to 0.02.
             rpy_step (float, optional): Step size for rpy. Defaults to PI/8.
         """
-    self.replayer = iter(Replayer(weights_key, data_dir=record_dir))
+    self.replayer = iter(Replayer(from_path, observation_space, action_space, **kwargs))
+    self.observation_space = observation_space
+    self.action_space = action_space
 
 
   def act(
       self,
-    *args,
-    **kwargs,
-  ) -> OctoAction:
-    # Create observation of past `window_size` number of observations
-    time_step = next(self.replayer)
-    if time_step is None:
-      raise StopIteration
-    obs, act, reward, done = time_step
-    return OctoAction(*[act['x'], act['y'], act['z'], act['roll'], act['pitch'], act['yaw'], act['grasp']])
+     **kwargs
+  ) -> list[Any]:
+    return [next(self.replayer)]

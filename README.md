@@ -12,6 +12,9 @@
 | [RT-1-X](https://robotics-transformer-x.github.io/)  | rt1x   | text + head camera | end effector pose delta |  Google Research et al., 2023 |
 | [Octo](https://github.com/octo-models/octo) | octo-base, octo-small | text + head camera + Optional[wrist camera] | end effector pose delta |  Octo Model Team et al., 2023 |
 
+
+# TODO: Needs to array method, to list method, to torch tensor.
+
 ## Installation
 
 Requirements:

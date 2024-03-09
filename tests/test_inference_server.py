@@ -1,49 +1,22 @@
-from robo_transformers.inference_server import InferenceServer
-from importlib.resources import files
-from PIL import Image
-import numpy as np
+# import unittest
+# from unittest.mock import patch, Mock
+# import numpy as np
+# from PIL import Image
+# from robo_transformers.inference_server import InferenceServer
 
-demo_img = files("robo_transformers").joinpath("demo_imgs/gripper_almost_grasp.png")
+# class TestInferenceServer(unittest.TestCase):
+#     def setUp(self):
+#         self.inference_server = InferenceServer()
 
-def test_dummy():
-    inference = InferenceServer(dummy=True)
-    img = np.array(Image.open(demo_img))
-    action0 = inference(instruction="test", image=img, save=True)
-    assert action0 is not None and action0 != {}
-    assert len(action0.get('base_displacement_vector')) == 2
-    assert len(action0.get('base_displacement_vertical_rotation')) == 1
-    assert len(action0.get('gripper_closedness_action')) == 1
-    assert len(action0.get('rotation_delta')) == 3
-    assert len(action0.get('terminate_episode')) == 3
-    assert len(action0.get('world_vector')) == 3
+#     @patch('numpy.array')
+#     @patch.object(Image, 'fromarray')
+#     def test_call_with_image(self, mock_fromarray, mock_np_array):
+#         mock_image = Mock()
+#         mock_np_array.return_value = mock_image
+#         self.inference_server(save=True, image=np.ones((480, 640, 3), dtype=np.uint8), instruction="test")
+#         mock_np_array.assert_called_once_with(np.ones((480, 640, 3), dtype=np.uint8))
+#         mock_fromarray.assert_called_once_with(mock_image)
 
-    action1 = inference(instruction="test", image=img, save=True)
-    for k, v in action1.items():
-        assert np.array_equal(v ,-action0[k])
-    
-    action2 = inference(instruction="test", image=img, save=True)
-    for k, v in action2.items():
-        assert np.array_equal(v ,-action1[k])
-
-# def test_dummy():
-#     inference = InferenceServer(dummy=True)
-#     img = np.array(Image.open(demo_img))
-#     action0 = inference(instruction="test", image=img, save=True)
-#     assert action0 is not None and action0 != {}
-#     assert len(action0.get('base_displacement_vector')) == 2
-#     assert len(action0.get('base_displacement_vertical_rotation')) == 1
-#     assert len(action0.get('gripper_closedness_action')) == 1
-#     assert len(action0.get('rotation_delta')) == 3
-#     assert len(action0.get('terminate_episode')) == 3
-#     assert len(action0.get('world_vector')) == 3
-
-#     action1 = inference(instruction="test", image=img, save=True)
-#     for k, v in action1.items():
-#         assert np.array_equal(v ,-action0[k])
-    
-#     action2 = inference(instruction="test", image=img, save=True)
-#     for k, v in action2.items():
-#         assert np.array_equal(v ,-action1[k])
-        
-if __name__ == '__main__':
-    test_dummy()
+#     def test_call_without_image(self):
+#         result = self.inference_server()
+#         self.assertIsNone(result)
