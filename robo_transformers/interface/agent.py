@@ -1,4 +1,4 @@
-from typing import Any
+from beartype.typing import Any
 from abc import ABC, abstractmethod
 from beartype import beartype
 
@@ -15,5 +15,5 @@ class Agent(ABC):
         pass
     
     @abstractmethod
-    def act(self, **kwargs) -> Any:
+    def act(self, **kwargs) -> list[Any]:
         pass

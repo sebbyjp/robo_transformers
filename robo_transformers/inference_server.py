@@ -1,12 +1,12 @@
 from PIL import Image
 import numpy as np
-from typing import Optional
+from beartype.typing import Optional, Union
 from pprint import pprint
 from absl import logging
 from beartype import beartype
-from numpy.typing import ArrayLike
 from robo_transformers.registry import REGISTRY
 from robo_transformers.interface import Agent
+from urllib.parse import urlparse
 
 @beartype
 class InferenceServer:
@@ -25,19 +25,15 @@ class InferenceServer:
             **kwargs: kwargs for the agent.
 
         '''
-
+        scheme, netloc, path, _, _, _ = urlparse(model_uri)
         if agent is not None:
             self.agent: Agent = agent
         else:
-            model_type = model_uri.split('/')[-2]
-            model_variant = model_uri.split('/')[-1]
-            self.agent: Agent = REGISTRY[model_type]['agent'](model_uri, **kwargs)
-            self.action = None
+            self.agent: Agent = REGISTRY[scheme][netloc](path, **kwargs)
 
     def __call__(self,
-                 save: bool = False,
                  **kwargs
-                 ) -> list[dict]:
+                 ) -> Union[list[dict], None]:
         '''Runs inference on a Vision Language Action model.
 
 
@@ -49,22 +45,19 @@ class InferenceServer:
         Returns:
             dict: See RT1Action for details.
         '''
-        image: ArrayLike = kwargs.get('image')
-        if image is not None and save:
-            Image.fromarray(np.array(image, dtype=np.uint8)).save("rt1_saved_image.png")
-
         try:
-            self.action = self.agent.act(**kwargs)
+            action = self.agent.act(**kwargs)
 
             if logging.get_verbosity() > logging.DEBUG and kwargs.get('instruction') is not None:
                 intruction = kwargs['instruction']
                 print(f'instruction: {intruction}')
                 pprint(self.action)
+            
+            return action
 
         except Exception as e:
             import traceback
             traceback.print_tb(e.__traceback__)
             raise e
 
-        return self.action
 

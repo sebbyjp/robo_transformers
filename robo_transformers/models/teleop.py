@@ -1,8 +1,8 @@
 from robo_transformers.interface import Agent, Control, Supervision
 from robo_transformers.data_util import Recorder
 from robo_transformers.common.observations import ImageInstruction
-from robo_transformers.common.actions import GripperBaseControl, GripperControl, GraspControl, PoseControl
-from typing import Any, Optional
+from robo_transformers.common.actions import GripperBaseControl, GripperControl, JointControl, PoseControl
+from beartype.typing import Any, Optional
 import os
 import cv2
 import numpy as np
@@ -112,7 +112,7 @@ class TeleOpAgent(Agent):
     print('recording grasp: ', grasp)
     
     self.last_grasp = grasp
-    action = GripperBaseControl(finish=done, left_gripper=GripperControl(pose=PoseControl(xyz=action[:3], rpy=action[3:6]), grasp=GraspControl(Control.ABSOLUTE, grasp_bounds=[0, 1.0])) )
+    action = GripperBaseControl(finish=done, left_gripper=GripperControl(pose=PoseControl(xyz=action[:3], rpy=action[3:6]), grasp=JointControl(Control.ABSOLUTE, bounds=[0, 1.0])) )
     self.recorder.record(
         observation= ImageInstruction(instruction=instruction, image=image, supervision=reward, supervision_type=Supervision.BINARY).todict(),
         action=action.todict(),

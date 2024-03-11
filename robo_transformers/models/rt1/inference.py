@@ -14,7 +14,7 @@ import os
 import gdown
 import sys
 from pprint import pprint
-from typing import Optional
+from beartype.typing import Optional
 
 REGISTRY = {
     "rt1main": "https://drive.google.com/drive/folders/1QG99Pidaw6L9XYv1qSmuip_qga9FRcEC?usp=drive_link",

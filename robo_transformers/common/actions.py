@@ -1,9 +1,26 @@
+'''Actions for control of the robot.
 
+This module defines the following classes:
+- PoseControl: Action for a 6D space representing x, y, z, roll, pitch, and yaw.
+- PlanarDirectionControl: Action for a 2D+1 space representing x, y, and yaw.
+- JointControl: Action for a joint value, typically an angle.
+- GripperControl: Action for a 7D space representing x, y, z, roll, pitch, yaw, and oppenness of the gripper.
+- FullJointControl: Action for joint control.
+- EmbodiedControl: Action for arbitrary control of multiple actions.
+- GripperBaseControl: Control for a gripper and optional right gripper and base. Defaults to relative control except for the gripper which defaults to absolute control with bounds [0,1].
+
+Example:
+    The following example demonstrates the use of the PoseControl class:
+        pose = PoseControl(xyz=[0, 0, 0], rpy=[0, 0, 0])
+        print(pose.space())
+        # Output: {'xyz': Box(-1.0, 1.0, (3,), float32), 'rpy': Box(-3.14, 3.14, (3,), float32)}
+    
+'''
 
 from gym.spaces import Box, Dict, Discrete
 from robo_transformers.common.samples import Pose, PlanarDirection
 from robo_transformers.interface import Sample, ControlAction, Control
-from typing import SupportsFloat, Union, Sequence
+from beartype.typing import SupportsFloat, Union, Sequence
 from dataclasses import dataclass, field
 import numpy as np
 from beartype import beartype
@@ -30,44 +47,6 @@ class PlanarDirectionControl(PlanarDirection, ControlAction):
 
 @beartype
 @dataclass
-class GraspControl(ControlAction):
-    '''Action for a 1D space representing grip.
-    '''
-    grasp: SupportsFloat = 0
-    grasp_bounds: Union[Sequence[SupportsFloat], np.ndarray] = field(default_factory=lambda: [-1, 1])
-
-    def space(self) -> Dict:
-        space = dict(ControlAction.space(self))
-        space.update({
-            'grasp': Box(low=self.grasp_bounds[0], high=self.grasp_bounds[1], shape=(), dtype=float),
-        })
-        return Dict(space)
-
-
-
-@beartype
-@dataclass
-class GripperControl(ControlAction):
-    '''Action for a 7D space representing x, y, z, roll, pitch, yaw, and grip of the gripper.
-    '''
-    pose: PoseControl = field(default_factory=PoseControl)
-    grasp: GraspControl = field(default_factory=GraspControl)
-
-    def __post_init__(self):
-        '''Post initialization.
-        '''
-        if self.control_type != Control.UNSPECIFIED:
-            assert self.pose.control_type in (self.control_type, Control.UNSPECIFIED), "Pose control type must match the gripper control type."
-            assert self.grasp.control_type in (self.control_type, Control.UNSPECIFIED), "Grasp control type must match the gripper control type."
-
-    def space(self):
-        space = dict(ControlAction.space(self))
-        space.update({'pose': self.pose.space()})
-        space.update({'grasp': self.grasp.space()})
-        return Dict(space)
-
-@beartype
-@dataclass
 class JointControl(ControlAction):
     '''Action for a joint value, typically an angle.
     '''
@@ -81,6 +60,26 @@ class JointControl(ControlAction):
         })
         return Dict(space)
 
+@beartype
+@dataclass
+class GripperControl(ControlAction):
+    '''Action for a 7D space representing x, y, z, roll, pitch, yaw, and oppenness of the gripper.
+    '''
+    pose: PoseControl = field(default_factory=PoseControl)
+    grasp: JointControl = field(default_factory=JointControl)
+
+    def __post_init__(self):
+        '''Post initialization.
+        '''
+        if self.control_type != Control.UNSPECIFIED:
+            assert self.pose.control_type in (self.control_type, Control.UNSPECIFIED), "Pose control type must match the gripper control type."
+            assert self.grasp.control_type in (self.control_type, Control.UNSPECIFIED), "Grasp control type must match the gripper control type."
+
+    def space(self):
+        space = dict(ControlAction.space(self))
+        space.update({'pose': self.pose.space()})
+        space.update({'grasp': self.grasp.space()})
+        return Dict(space)
 
 @beartype
 @dataclass

@@ -1,11 +1,10 @@
-from typing import Any
+from beartype.typing import Any
 import h5py
 from h5py import string_dtype
 import numpy as np
 import os
 from gym import spaces
 from datetime import datetime
-from robo_transformers.interface import Sample
 from PIL import Image
 from pathlib import Path
 
@@ -44,8 +43,54 @@ class Recorder:
     name: str,
     observation_space: spaces.Dict,
     action_space: spaces.Dict,
-    out_dir: str = 'episodes',
-    num_steps: int = 10):
+    out_dir: str = 'episodes'):
+    '''Records a dataset to a file. Saves images to folder with _frames appended to the name stem.
+
+    Args:
+        name (str): Name of the file.
+        observation_space (spaces.Dict): Observation space.
+        action_space (spaces.Dict): Action space.
+        out_dir (str, optional): Directory of the output file. Defaults to 'episodes'.
+    
+    Example:
+    ```
+    # Define the observation and action spaces
+    observation_space = spaces.Dict({
+        'image': spaces.Box(low=0, high=255, shape=(224, 224, 3), dtype=np.uint8),
+        'instruction': spaces.Discrete(10)
+    })
+    action_space = spaces.Dict({
+        'gripper_position': spaces.Box(low=-1, high=1, shape=(3,), dtype=np.float32),
+        'gripper_action': spaces.Discrete(2)
+    })
+
+    # Create a recorder instance
+    recorder = Recorder(name='test_recorder', observation_space=observation_space, action_space=action_space)
+    
+    # Generate some sample data
+    num_steps = 10
+    for i in range(num_steps):
+        observation = {
+            'image': np.ones((224, 224, 3), dtype=np.uint8),
+            'instruction': i
+        }
+        action = {
+            'gripper_position': np.zeros((3,), dtype=np.float32),
+            'gripper_action': 1
+        }
+        recorder.record(observation, action)
+    
+    # Save the statistics
+    recorder.save_stats()
+
+    # Close the recorder
+    recorder.close()
+
+    # Assert that the HDF5 file and directories are created
+    assert os.path.exists('test_recorder.hdf5')
+    assert os.path.exists('test_recorder_frames')
+    '''
+
     
 
     name = os.path.join(out_dir, name)
@@ -62,10 +107,10 @@ class Recorder:
     self.action_space = action_space
 
     self.file.create_group('observation')
-    create_dataset_for_space_dict(observation_space, self.file['observation'], num_steps)
+    create_dataset_for_space_dict(observation_space, self.file['observation'])
 
     self.file.create_group('action')
-    create_dataset_for_space_dict(action_space, self.file['action'], num_steps)
+    create_dataset_for_space_dict(action_space, self.file['action'])
 
     
     self.index = 0
@@ -123,9 +168,39 @@ class Replayer:
     '''Replays a dataset from a file. Saves images to folder with _frames appended to the path stem.
 
     Args:
-        path (str): _description_
-        observation_space (spaces.Dict): _description_
-        action_space (spaces.Dict): _description_
+        path (str): Path to the HDF5 file.
+        observation_space (spaces.Dict): Observation space.
+        action_space (spaces.Dict): Action space.
+    
+    Example:
+    ```
+    # Define the observation and action spaces
+    observation_space = spaces.Dict({
+        'image': spaces.Box(low=0, high=255, shape=(224, 224, 3), dtype=np.uint8),
+        'instruction': spaces.Discrete(10)
+    })
+    action_space = spaces.Dict({
+        'gripper_position': spaces.Box(low=-1, high=1, shape=(3,), dtype=np.float32),
+        'gripper_action': spaces.Discrete(2)
+    })
+
+    # Create a replayer instance
+    replayer = Replayer(path='test_recorder.hdf5', observation_space=observation_space, action_space=action_space)
+    
+    # Iterate over the recorded data
+    for observation, action in replayer:
+        # Perform assertions or additional processing here
+        assert isinstance(observation, dict)
+        assert isinstance(action, dict)
+        assert 'image' in observation
+        assert 'gripper_position' in action
+
+        # Save the observation image as a PNG file
+        Image.fromarray(observation['image']).save('observation.png')
+
+    # Close the replayer
+    replayer.close()
+    ```
     '''
     self.path = path
     self.frames_path = path.split('.')[0] + '_frames'

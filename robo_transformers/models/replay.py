@@ -1,5 +1,5 @@
 from robo_transformers.interface.agent import Agent
-from typing import Any, Optional
+from beartype.typing import Any, Optional
 from gym import spaces
 from beartype import beartype
 from robo_transformers.data_util import Replayer

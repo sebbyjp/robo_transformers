@@ -1,5 +1,5 @@
 from robo_transformers.interface.sample import Sample
-from typing import Union, Sequence, SupportsFloat
+from beartype.typing import Union, Sequence, SupportsFloat
 from gym import spaces
 from dataclasses import dataclass, field
 from beartype import beartype

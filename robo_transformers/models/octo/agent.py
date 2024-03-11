@@ -1,9 +1,9 @@
-from robo_transformers.common.actions import GripperControl, PoseControl, GraspControl
+from robo_transformers.common.actions import GripperControl, PoseControl, JointControl
 from robo_transformers.common.observations import MultiImageInstruction, Image
 from robo_transformers.interface.action import Control
 from robo_transformers.interface import Agent
 
-from typing import Any, Optional
+from beartype.typing import Any, Optional
 import jax
 import os
 import cv2
@@ -72,28 +72,28 @@ os.environ['TOKENIZERS_PARALLELISM'] = 'false'
 @beartype
 class OctoAgent(Agent):
 
-  def __init__(self, model_uri: str, *, retention: int = 2, foresight: int = 3, **kwargs):
-    '''Agent for octo model.
+  def __init__(self, model_path: str, *, retention: int = 2, foresight: int = 3, **kwargs):
+    '''Agent for Octo model.
 
-        Args:
-            weights_key (str, optional): octo-small or octo-base. Defaults to 'octo-small'.
-            window_size (int, optional): Number of past observations to use for inference. Must be <= 2. Defaults to 2.
-            num_additional_future_actions (int, optional): Number of additional future actions to return. Defaults to 0.
-        '''
-    print('Loading from {}'.format("hf://rail-berkeley/octo-base"))
-    self.policy: OctoModel = OctoModel.load_pretrained(model_uri)
+    Args:
+        model_path (str): Path to the model.
+        retention (int, optional): Number of observations to retain for inference. Defaults to 2.
+        foresight (int, optional): Number of future actions to return. Defaults to 3.
+
+    '''
+    print('Loading from {}'.format('hf://rail-berkeley/' + model_path))
+    self.model: OctoModel = OctoModel.load_pretrained('hf://rail-berkeley/' + model_path)
     self.observation_space = MultiImageInstruction(
         instruction=' ', images=[Image(height=256, width=320),
                                  Image(height=128, width=128)]).space()
     self.action_space = GripperControl(pose=PoseControl(Control.RELATIVE),
-                                       grasp=GraspControl(Control.ABSOLUTE, grasp_bounds=[0, 1.0])).space()
+                                       grasp=JointControl(Control.ABSOLUTE, bounds=[0, 1.0])).space()
     self.observation_buffer: list[MultiImageInstruction] = []
     self.retention = retention
     self.foresight = foresight
     self.step_num = 0
 
   def act(self,
-          *,
           instruction: str,
           image: npt.ArrayLike,
           image_wrist: Optional[npt.ArrayLike] = None,
@@ -145,6 +145,6 @@ class OctoAgent(Agent):
     actions = norm_actions * std_action + mean_action
 
     return [
-        GripperControl(pose=PoseControl(Control.RELATIVE, xyz=actions[i, :3], rpy=actions[i, 3:6]),
-                       grasp=GraspControl(Control.ABSOLUTE, actions[i, 6], grasp_bounds=[0,1.0])).todict() for i in range(self.foresight)
+        GripperControl(pose=PoseControl(Control.RELATIVE, xyz=np.array(actions[i, :3]), rpy=np.array(actions[i, 3:6])),
+                       grasp=JointControl(Control.ABSOLUTE, actions[i, 6], bounds=[0,1.0])).todict() for i in range(self.foresight)
     ]

@@ -1,4 +1,4 @@
-from typing import Any
+from beartype.typing import Any
 import tensorflow as tf
 import numpy as np
 import PIL.Image as Image
@@ -17,9 +17,9 @@ flags.DEFINE_string(
     "demo_instruction", "pick up the block", "The instruction to run inference on."
 )
 flags.DEFINE_string(
-    "model_type",
-    "octo",
-    "Which model to load. Must be one of: " + str(REGISTRY.keys()),
+    "model_path",
+    "rt1x",
+    "Which model to load. Can be [rt1main, rt1x, octo-small, octo-base]",
 )
 
 
@@ -29,7 +29,7 @@ def get_demo_images(output=None) -> np.ndarray:
     """Loads a demo video from the directory.
 
     Returns:
-        list[tf.Tensor]: A list of tensors of shape (batch_size, HEIGHT, WIDTH, 3).
+        list[]: A list of tensors of shape (batch_size, HEIGHT, WIDTH, 3).
     """
     # Suppress noisy PIL warnings.
     log_level = logging.get_verbosity()
@@ -54,7 +54,6 @@ def get_demo_images(output=None) -> np.ndarray:
 
 
 def run_demo(agent: Agent) -> list[Any]:
-
     # Pass in an instruction through the --demo_instruction flag.
     actions = []
     images = get_demo_images(output=os.getcwd())
@@ -77,7 +76,10 @@ def main(_):
 
     # Run three time steps of inference using the demo images.
     # Pass in an instruction via the command line.
-    agent: Agent = REGISTRY[FLAGS.model_type]['agent']()
+    if 'octo' in FLAGS.model_path:
+        agent: Agent = REGISTRY['hf']['rail-berkley'](FLAGS.model_path)
+    else:
+        agent: Agent = REGISTRY['gs']['rt1'](FLAGS.model_path)
     run_demo(agent)
 
 
@@ -85,17 +87,17 @@ if __name__ == "__main__":
     if "--help" in sys.argv or "-h" in sys.argv:
         print(
             """
-        Octo Inference Demo
+        Inference Demo
         -------------------
-        This demo runs inference on a pretrained Octo model.
+        This demo runs inference on a pretrained Robotics VLA model.
 
         The demo will run inference on three images from the demo_imgs directory
         and print the output to the console.
 
-        You can also pass in a custom instruction via the --instruction flag.
+        You can also pass in a custom instruction via the --demo_instruction flag.
 
-        To run the demo, use the following command:
-        python3 -m robo_transformers.demo --model_type=octo --instruction="pick block"
+        To run the demo, use the following example command:
+        python3 -m robo_transformers.demo --model_uri='hf://rail-berkly/octo-base --demo_instruction="pick block"
         """
         )
     app.run(main)

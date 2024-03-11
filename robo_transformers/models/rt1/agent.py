@@ -1,16 +1,17 @@
 '''An agent is defined by its observation and action space.
 '''
-from typing import Any
+from beartype.typing import Any
 from robo_transformers.interface import Agent
 from robo_transformers.interface.action import Control
 from robo_transformers.common.observations import ImageInstruction, Image
-from robo_transformers.common.actions import GripperControl, GraspControl, GripperBaseControl, PlanarDirectionControl, Discrete, PoseControl
+from robo_transformers.common.actions import GripperControl, JointControl, GripperBaseControl, PlanarDirectionControl, Discrete, PoseControl
 
 from tf_agents.policies.py_policy import PyPolicy
 from tf_agents.policies.tf_policy import TFPolicy
 from robo_transformers.models.rt1.inference import load_rt1, inference, embed_text
 from gym import spaces
 import numpy as np
+from urllib.parse import urlparse
 
 class RT1Agent(Agent):
   '''Inspired by Google's RT-1
@@ -20,31 +21,26 @@ class RT1Agent(Agent):
 
     '''
 
-  def __init__(self, model_uri: str, **kwargs):
+  def __init__(self, model_path: str, **kwargs):
     self.observation_space = ImageInstruction().space()
-    self.action_space = GripperBaseControl(left_gripper=GripperControl(grasp=GraspControl(control_type=Control.RELATIVE, grasp_bounds=[-1, 1]))).space()
+    self.action_space = GripperBaseControl(left_gripper=GripperControl(grasp=JointControl(control_type=Control.RELATIVE, bounds=[-1, 1]))).space()
 
     self.step_num = 0
     self.policy_state = None
 
-    if model_uri == 'gs://rt1/rt1main':
-        self.policy: TFPolicy | PyPolicy = load_rt1(model_key='rt1x')
+    self.policy: TFPolicy | PyPolicy = load_rt1(model_key=model_path)
 
-    else:
-        raise ValueError('Model not found')
-
-  def act(self, *,  instruction: str, image: np.array) -> list[Any]:
+  def act(self,instruction: str, image: np.array) -> list[Any]:
     image = np.array(image, dtype=np.uint8)
     action, next_state, _ = inference(instruction, image, self.step_num, 0.0, self.policy, self.policy_state)
 
     self.policy_state = next_state
     self.step_num += 1
-
     return [GripperBaseControl(
-        PlanarDirectionControl(xy=np.array(action['base_displacement_vector']), yaw=np.array(action['base_displacement_vertical'])),
-        GripperControl(pose=PoseControl(xyz=np.array(action['world_vector']), rpy=np.array(action['rotation_delta'])),
-                            grasp=GraspControl(action['gripper_closedness_action'])),
-        Discrete(action['terminate_episode'])).todict()]
+        base=PlanarDirectionControl(xy=np.array(action['base_displacement_vector']), yaw=np.array(action['base_displacement_vertical_rotation'])),
+        left_gripper=GripperControl(pose=PoseControl(xyz=np.array(action['world_vector']), rpy=np.array(action['rotation_delta'])),
+                            grasp=JointControl(value=action['gripper_closedness_action'])),
+      finish=action['terminate_episode'][0,2] != 0 ).todict()]
 
 
 # from robo_transformers.abstract.agent import Agent
@@ -52,7 +48,7 @@ class RT1Agent(Agent):
 # from tf_agents.policies.tf_policy import TFPolicy
 # from robo_transformers.models.rt1.inference import load_rt1, inference, embed_text
 # from robo_transformers.models.rt1.action import RT1Action
-# from typing import Optional
+# from beartype.typing import Optional
 # import numpy.typing as npt
 # import cv2
 # import numpy as np
