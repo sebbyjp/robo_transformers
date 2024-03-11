@@ -98,7 +98,7 @@ class OctoAgent(Agent):
           image: npt.ArrayLike,
           image_wrist: Optional[npt.ArrayLike] = None,
           mean_action: Optional[npt.ArrayLike] = None,
-          std_action: Optional[npt.ArrayLike] = None) -> list[Any]:
+          std_action: Optional[npt.ArrayLike] = None) -> list:
 
     # Create observation of past `window_size` number of observations
     image = cv2.resize(np.array(image, dtype=np.uint8), (256, 256))

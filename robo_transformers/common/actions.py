@@ -20,10 +20,11 @@ Example:
 from gym.spaces import Box, Dict, Discrete
 from robo_transformers.common.samples import Pose, PlanarDirection
 from robo_transformers.interface import Sample, ControlAction, Control
-from beartype.typing import SupportsFloat, Union, Sequence
+from beartype.typing import SupportsFloat, Union, Sequence, Optional
 from dataclasses import dataclass, field
 import numpy as np
 from beartype import beartype
+
 
 @beartype
 @dataclass
@@ -110,7 +111,7 @@ class FullJointControl(ControlAction):
 class EmbodiedControl(ControlAction):
     '''Action for arbitrary control of multiple actions.
     '''
-    actions: Union[Sequence[ControlAction | Sample], np.ndarray] = field(default_factory=lambda: [ControlAction()])
+    actions: Union[Sequence[Union[ControlAction,Sample]], np.ndarray] = field(default_factory=lambda: [ControlAction()])
     names: Union[Sequence[str], None] = None
 
     def __post_init__(self):
@@ -134,12 +135,12 @@ class GripperBaseControl(ControlAction):
     '''Control for a gripper and optional right gripper and base. Defaults to relative control except for the gripper which defaults to absolute control with bounds [0,1].
     '''
     base: PlanarDirectionControl = field(default_factory= lambda: PlanarDirectionControl(control_type=Control.RELATIVE))
-    left_gripper: GripperControl = field(default_factory= lambda: GripperControl(grasp=GraspControl(control_type=Control.ABSOLUTE, grasp_bounds=[0,1])))
+    left_gripper: GripperControl = field(default_factory= lambda: GripperControl(grasp=JointControl(control_type=Control.ABSOLUTE, bounds=[0,1])))
     finish: bool = False
 
-    right_gripper: GripperControl | None = None
-    camera_tilt: JointControl | None = None
-    camera_pan: JointControl | None = None
+    right_gripper: Optional[GripperControl] = None
+    camera_tilt: Optional[JointControl] = None
+    camera_pan: Optional[JointControl] = None
 
     def __post_init__(self):
         '''Post initialization.

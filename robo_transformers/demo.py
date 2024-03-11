@@ -53,7 +53,7 @@ def get_demo_images(output=None) -> np.ndarray:
     return images
 
 
-def run_demo(agent: Agent) -> list[Any]:
+def run_demo(agent: Agent) -> list:
     # Pass in an instruction through the --demo_instruction flag.
     actions = []
     images = get_demo_images(output=os.getcwd())

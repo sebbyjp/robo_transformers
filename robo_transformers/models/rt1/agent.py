@@ -1,6 +1,6 @@
 '''An agent is defined by its observation and action space.
 '''
-from beartype.typing import Any
+from beartype.typing import Any, Union
 from robo_transformers.interface import Agent
 from robo_transformers.interface.action import Control
 from robo_transformers.common.observations import ImageInstruction, Image
@@ -28,9 +28,9 @@ class RT1Agent(Agent):
     self.step_num = 0
     self.policy_state = None
 
-    self.policy: TFPolicy | PyPolicy = load_rt1(model_key=model_path)
+    self.policy: Union[TFPolicy,PyPolicy]= load_rt1(model_key=model_path)
 
-  def act(self,instruction: str, image: np.array) -> list[Any]:
+  def act(self,instruction: str, image: np.array) -> list:
     image = np.array(image, dtype=np.uint8)
     action, next_state, _ = inference(instruction, image, self.step_num, 0.0, self.policy, self.policy_state)
 

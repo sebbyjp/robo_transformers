@@ -29,5 +29,5 @@ class ReplayAgent(Agent):
   def act(
       self,
      **kwargs
-  ) -> list[Any]:
+  ) -> list:
     return [next(self.replayer)]

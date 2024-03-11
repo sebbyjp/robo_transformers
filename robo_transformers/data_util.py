@@ -7,10 +7,12 @@ from gym import spaces
 from datetime import datetime
 from PIL import Image
 from pathlib import Path
+from absl import logging
 
 def create_dataset_for_space_dict(space_dict: spaces.Dict, group: h5py.Group, num_steps: int = 10):
     for key, space in space_dict.items():
-        print('key: ', key, ', value: ', space)
+        if logging.get_verbosity() > logging.DEBUG:
+            print('key: ', key, ', value: ', space)
         if isinstance(space, spaces.Dict):
             subgroup = group.create_group(key)
             create_dataset_for_space_dict(space, subgroup, num_steps)
@@ -117,7 +119,8 @@ class Recorder:
   
   def record_timestep(self, group: h5py.Group, timestep_dict, i):
     for key, value in timestep_dict.items():
-      print('toplevel key: ', key, ', value: ', value)
+      if logging.get_verbosity() > logging.DEBUG:
+        print('toplevel key: ', key, ', value: ', value)
       if 'bounds' in key:
         continue
       if isinstance(value, dict):
@@ -128,11 +131,17 @@ class Recorder:
         if isinstance(value, np.ndarray) and len(value.shape) == 3:
             image = Image.fromarray(value)
             image.save(f'{self.name}_frames/{self.index}.png')
-        print('key: ', key, ', value: ', value)
+        if logging.get_verbosity() > logging.DEBUG:
+            print('key: ', key, ', value: ', value)
         dataset = group[key]
         dataset[i] = value
 
   def record(self, observation: Any, action: Any):
+    if hasattr(observation, 'todict'):
+        observation = observation.todict()
+    if hasattr(action, 'todict'):
+        action = action.todict()
+    logging.debug('Recording action: %s for instruction %s', str(action), str(observation.get('instruction', None))) 
     self.record_timestep(self.file['observation'], observation, self.index)
     self.record_timestep(self.file['action'], action, self.index)
     self.index += 1

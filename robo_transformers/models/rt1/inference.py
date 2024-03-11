@@ -14,7 +14,7 @@ import os
 import gdown
 import sys
 from pprint import pprint
-from beartype.typing import Optional
+from beartype.typing import Optional, Union
 
 REGISTRY = {
     "rt1main": "https://drive.google.com/drive/folders/1QG99Pidaw6L9XYv1qSmuip_qga9FRcEC?usp=drive_link",
@@ -127,7 +127,7 @@ def load_rt1(
     return policy
 
 
-def embed_text(input: list[str] | str, batch_size: int = 1) -> tf.Tensor:
+def embed_text(input: Union[list, str], batch_size: int = 1) -> tf.Tensor:
     """Embeds a string using the Universal Sentence Encoder. Copies the string
         to fill the batch dimension.
 
@@ -147,7 +147,7 @@ def embed_text(input: list[str] | str, batch_size: int = 1) -> tf.Tensor:
     )
 
 
-def format_images(images: np.ndarray | list[np.ndarray]) -> tf.Tensor:
+def format_images(images: Union[np.ndarray, list]) -> tf.Tensor:
     """Formats a list of images to the correct shape and type.
 
     Args:
@@ -172,14 +172,14 @@ def format_images(images: np.ndarray | list[np.ndarray]) -> tf.Tensor:
 
 
 def inference(
-    instructions: list[str] | str,
-    imgs: list[np.ndarray] | np.ndarray,
+    instructions: Union[list, str],
+    imgs: Union[list,np.ndarray],
     step: int,
-    reward: Optional[list[float] | float] = None,
+    reward: Optional[Union[list,float]] = None,
     policy: Optional[LoadedPolicy] = None,
     policy_state=Optional[types.NestedArray],
     terminate=False,
-) -> tuple[ps.ActionType, types.NestedSpecTensorOrArray, types.NestedSpecTensorOrArray]:
+) -> tuple:
     """Runs inference on a list of images and instructions.
 
     Args:
@@ -194,6 +194,7 @@ def inference(
 
     Returns:
         tuple[Action, State, Info]: The action, state, and info from the policy Again see the
+        = tuple[ps.ActionType, types.NestedSpecTensorOrArray, types.NestedSpecTensorOrArray]
          "Data Types" section of README.md.
     """
     if policy is None:

@@ -96,7 +96,7 @@ class TeleOpAgent(Agent):
       self,
       instruction: str,
       image: npt.ArrayLike,
-  ) -> list[Any]:
+  ) -> list:
     # Create observation of past `window_size` number of observations
     image = cv2.resize(np.array(image, dtype=np.uint8),(640, 480))
     action, reward, done = self.process_input()

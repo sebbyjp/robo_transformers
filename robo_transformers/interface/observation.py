@@ -2,6 +2,7 @@ from robo_transformers.interface import Sample
 from dataclasses import dataclass
 from gym import spaces
 from beartype import beartype
+from beartype.typing import SupportsFloat, Optional
 from enum import IntEnum
 
 class Supervision(IntEnum):
@@ -16,7 +17,7 @@ class Supervision(IntEnum):
 class Observation(Sample):
     '''Sample for an observation. Includes possible supervision and whether the episode is stopped.
     '''
-    supervision: float | int = 0
+    supervision: Optional[SupportsFloat] = None
     supervision_type: Supervision = Supervision.UNSUPERVISED
     stopped: bool = False # True if the episode is stopped or we were told to stop.
 

@@ -15,5 +15,5 @@ class Agent(ABC):
         pass
     
     @abstractmethod
-    def act(self, **kwargs) -> list[Any]:
+    def act(self, **kwargs) -> list:
         pass

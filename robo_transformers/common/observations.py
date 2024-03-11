@@ -35,7 +35,7 @@ class MultiImageInstruction(Observation):
     '''Sample for a set of instruction images.
     '''
     instruction: str = " "
-    images: list[Image] = field(default_factory=lambda: [Image(), Image()])
+    images: list = field(default_factory=lambda: [Image(), Image()])
 
     def space(self):
         return spaces.Dict({
