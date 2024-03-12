@@ -1,0 +1,10 @@
+{
+    "summary": "The code contains four test functions: test_rt1_policy_main, test_rt1_policy_simreal, test_rt1_policy_multirobot, and test_rt1_policy_x. Each function loads a different model key (rt1main, rt1simreal, rt1multirobot, rt1x) using load_rt1() and then runs the demo using run_demo(). The if __name__ == '__main__' block executes all test functions. All assertions expect no errors (is None).",
+    "details": [
+        {
+            "comment": "The code contains four test functions: test_rt1_policy_main, test_rt1_policy_simreal, test_rt1_policy_multirobot, and test_rt1_policy_x. Each function loads a different model key (rt1main, rt1simreal, rt1multirobot, rt1x) using load_rt1() and then runs the demo using run_demo(). The if __name__ == '__main__' block executes all test functions. All assertions expect no errors (is None).",
+            "location": "\"/media/root/Prima/works/robo_transformers/docs/src/tests/test_rtl.py\":0-22",
+            "content": "from robo_transformers.models.rt1.inference import run_demo, load_rt1\ndef test_rt1_policy_main():\n    policy = load_rt1(model_key='rt1main')\n    assert run_demo(policy=policy) is None\ndef test_rt1_policy_simreal():\n    policy = load_rt1(model_key='rt1simreal')\n    assert run_demo(policy=policy) is None\ndef test_rt1_policy_multirobot():\n    policy = load_rt1(model_key='rt1multirobot')\n    assert run_demo(policy=policy) is None\ndef test_rt1_policy_x():\n    policy = load_rt1(model_key='rt1x')\n    assert run_demo(policy=policy) is None\nif __name__ == '__main__':\n    test_rt1_policy_main()\n    test_rt1_policy_simreal()\n    test_rt1_policy_multirobot()\n    test_rt1_policy_x()"
+        }
+    ]
+}

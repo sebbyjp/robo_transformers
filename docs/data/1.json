@@ -1,0 +1,119 @@
+{
+    "100": {
+        "file_id": 12,
+        "content": "            \"./runs\", tensor_debug_mode=\"FULL_HEALTH\", circular_buffer_size=-1\n        )\n    # Run three time steps of inference using the demo images.\n    # Pass in an instruction via the command line.\n    run_demo()\nif __name__ == \"__main__\":\n    if \"--help\" in sys.argv or \"-h\" in sys.argv:\n        print(\n            \"\"\"\n        RT-1 Inference Demo\n        -------------------\n        This demo runs inference on a pretrained RT-1 model. It uses a pretrained\n        Universal Sentence Encoder to embed the instruction and a pretrained\n        ViT to extract features from the image.\n        The demo will run inference on three images from the demo_imgs directory\n        and print the output to the console.\n        You can also pass in a custom instruction via the --instruction flag.\n        To run the demo, use the following command:\n        python3 -m robo_transformers.rt1.inference --model_key=rt1simreal --instruction=\"pick block\"\n        \"\"\"\n        )\n    app.run(main)\nelse:\n    # TODO (speralta): Consider reading in flags from argv",
+        "type": "code",
+        "location": "/robo_transformers/models/rt1/inference.py:314-343"
+    },
+    "101": {
+        "file_id": 12,
+        "content": "This code snippet is a part of the RT-1 inference demo. It uses pretrained Universal Sentence Encoder and ViT models to run inference on three images from the \"demo_imgs\" directory, displaying the output on the console. A custom instruction can be passed via the \"--instruction\" flag. The code is designed to be executed as a standalone script.",
+        "type": "comment"
+    },
+    "102": {
+        "file_id": 12,
+        "content": "    # CAREFUL: This will crash if you allow flags from argv that haven't been\n    # defined.\n    # For now, only apps that use app.run() can set flags.\n    # Read in the program name\n    FLAGS(sys.argv[0:1])",
+        "type": "code",
+        "location": "/robo_transformers/models/rt1/inference.py:344-348"
+    },
+    "103": {
+        "file_id": 12,
+        "content": "This code reads in the program name from command line arguments. It sets flags for an application using the FLAGS function, but be cautious as it may crash if unrecognized flags are provided. This setup is tailored to applications that use app.run().",
+        "type": "comment"
+    },
+    "104": {
+        "file_id": 13,
+        "content": "/robo_transformers/registry.py",
+        "type": "filepath"
+    },
+    "105": {
+        "file_id": 13,
+        "content": "This code defines a registry of agent and action classes for different models (RT1 and Octo) in a Robot Transformer framework. It maps model names to their corresponding agent, action, and weight key configurations for future usage.",
+        "type": "summary"
+    },
+    "106": {
+        "file_id": 13,
+        "content": "from robo_transformers.models.rt1.action import RT1Action\nfrom robo_transformers.models.rt1.agent import RT1Agent\nfrom robo_transformers.models.octo.action import OctoAction\nfrom robo_transformers.models.octo.agent import OctoAgent\nREGISTRY = {\n    \"rt1\": {\n        \"agent\": RT1Agent,\n        \"action\": RT1Action,\n        \"weight_keys\": [\"rt1main\", \"rt1simreal\", \"rt1multirobot\", \"rt1x\"]\n    },\n    \"octo\": {\n        \"agent\": OctoAgent,\n        \"action\": OctoAction,\n        \"weight_keys\": [\"octo-small\", \"octo-base\"]\n    }\n}",
+        "type": "code",
+        "location": "/robo_transformers/registry.py:1-17"
+    },
+    "107": {
+        "file_id": 13,
+        "content": "This code defines a registry of agent and action classes for different models (RT1 and Octo) in a Robot Transformer framework. It maps model names to their corresponding agent, action, and weight key configurations for future usage.",
+        "type": "comment"
+    },
+    "108": {
+        "file_id": 14,
+        "content": "/tests/test_inference_server.py",
+        "type": "filepath"
+    },
+    "109": {
+        "file_id": 14,
+        "content": "Test function checks the functionality of an InferenceServer in dummy mode, ensuring consistent negative output actions for the same instruction and image, and correct lengths of action elements.",
+        "type": "summary"
+    },
+    "110": {
+        "file_id": 14,
+        "content": "from robo_transformers.inference_server import InferenceServer\nfrom importlib.resources import files\nfrom PIL import Image\nimport numpy as np\ndemo_img = files(\"robo_transformers\").joinpath(\"demo_imgs/gripper_almost_grasp.png\")\ndef test_dummy():\n    inference = InferenceServer(dummy=True)\n    img = np.array(Image.open(demo_img))\n    action0 = inference(instruction=\"test\", image=img, save=True)\n    assert action0 is not None and action0 != {}\n    assert len(action0.get('base_displacement_vector')) == 2\n    assert len(action0.get('base_displacement_vertical_rotation')) == 1\n    assert len(action0.get('gripper_closedness_action')) == 1\n    assert len(action0.get('rotation_delta')) == 3\n    assert len(action0.get('terminate_episode')) == 3\n    assert len(action0.get('world_vector')) == 3\n    action1 = inference(instruction=\"test\", image=img, save=True)\n    for k, v in action1.items():\n        assert np.array_equal(v ,-action0[k])\n    action2 = inference(instruction=\"test\", image=img, save=True)\n    for k, v in action2.items():",
+        "type": "code",
+        "location": "/tests/test_inference_server.py:1-25"
+    },
+    "111": {
+        "file_id": 14,
+        "content": "Test function initializes an InferenceServer with dummy set to True. Opens a demo image and converts it to a numpy array. Calls inference on the server twice, passing the image and \"test\" instruction, saving the results. Asserts that the resulting actions are not None or empty dictionaries, have expected lengths for specific keys, and checks if the values of one action are opposite to the values of another action.",
+        "type": "comment"
+    },
+    "112": {
+        "file_id": 14,
+        "content": "        assert np.array_equal(v ,-action1[k])\n# def test_dummy():\n#     inference = InferenceServer(dummy=True)\n#     img = np.array(Image.open(demo_img))\n#     action0 = inference(instruction=\"test\", image=img, save=True)\n#     assert action0 is not None and action0 != {}\n#     assert len(action0.get('base_displacement_vector')) == 2\n#     assert len(action0.get('base_displacement_vertical_rotation')) == 1\n#     assert len(action0.get('gripper_closedness_action')) == 1\n#     assert len(action0.get('rotation_delta')) == 3\n#     assert len(action0.get('terminate_episode')) == 3\n#     assert len(action0.get('world_vector')) == 3\n#     action1 = inference(instruction=\"test\", image=img, save=True)\n#     for k, v in action1.items():\n#         assert np.array_equal(v ,-action0[k])\n#     action2 = inference(instruction=\"test\", image=img, save=True)\n#     for k, v in action2.items():\n#         assert np.array_equal(v ,-action1[k])\nif __name__ == '__main__':\n    test_dummy()",
+        "type": "code",
+        "location": "/tests/test_inference_server.py:26-49"
+    },
+    "113": {
+        "file_id": 14,
+        "content": "The code is testing the functionality of an InferenceServer by running it in dummy mode. It asserts that the output actions for the same instruction and image are negative values of each other, ensuring consistency. The code also verifies the lengths of specific action elements to confirm they have the correct number of values. The test runs three times to ensure the consistency of outputs for the same input.",
+        "type": "comment"
+    },
+    "114": {
+        "file_id": 15,
+        "content": "/tests/test_octo.py",
+        "type": "filepath"
+    },
+    "115": {
+        "file_id": 15,
+        "content": "This code defines two test functions, \"test_octo_agent\" and \"test_octo_agent_with_wrist\", which both create an OctoAgent object and test its functionality. The first function runs the demo with the agent, while the second function tests the agent's action generation by providing images and wrist data as inputs. The main part of the code executes the \"test_octo_agent\" function, checks that each action is not None and has a non-empty make() result.",
+        "type": "summary"
+    },
+    "116": {
+        "file_id": 15,
+        "content": "from robo_transformers.demo import run_demo\nfrom robo_transformers.models.octo.agent import OctoAgent\nimport numpy as np\ndef test_octo_agent():\n    \"\"\"\n    Test OctoAgent\n    \"\"\"\n    agent = OctoAgent()\n    run_demo(agent)\ndef test_octo_agent_with_wrist():\n    \"\"\"\n    Test OctoAgent with wrist\n    \"\"\"\n    agent = OctoAgent()\n    image = np.ones((224, 224, 3), dtype=np.uint8)\n    image_wrist = np.ones((128, 128, 3), dtype=np.uint8)\n    action = agent.act(\n        \"Do somethings\",\n        image,\n        image_wrist,\n    )\n    assert action is not None and action.make() != {}\nif __name__ == '__main__':\n    actions = test_octo_agent()\n    for action in actions:\n        assert action is not None and action.make() != {}",
+        "type": "code",
+        "location": "/tests/test_octo.py:1-33"
+    },
+    "117": {
+        "file_id": 15,
+        "content": "This code defines two test functions, \"test_octo_agent\" and \"test_octo_agent_with_wrist\", which both create an OctoAgent object and test its functionality. The first function runs the demo with the agent, while the second function tests the agent's action generation by providing images and wrist data as inputs. The main part of the code executes the \"test_octo_agent\" function, checks that each action is not None and has a non-empty make() result.",
+        "type": "comment"
+    },
+    "118": {
+        "file_id": 16,
+        "content": "/tests/test_rtl.py",
+        "type": "filepath"
+    },
+    "119": {
+        "file_id": 16,
+        "content": "The code contains four test functions: test_rt1_policy_main, test_rt1_policy_simreal, test_rt1_policy_multirobot, and test_rt1_policy_x. Each function loads a different model key (rt1main, rt1simreal, rt1multirobot, rt1x) using load_rt1() and then runs the demo using run_demo(). The if __name__ == '__main__' block executes all test functions. All assertions expect no errors (is None).",
+        "type": "summary"
+    },
+    "120": {
+        "file_id": 16,
+        "content": "from robo_transformers.models.rt1.inference import run_demo, load_rt1\ndef test_rt1_policy_main():\n    policy = load_rt1(model_key='rt1main')\n    assert run_demo(policy=policy) is None\ndef test_rt1_policy_simreal():\n    policy = load_rt1(model_key='rt1simreal')\n    assert run_demo(policy=policy) is None\ndef test_rt1_policy_multirobot():\n    policy = load_rt1(model_key='rt1multirobot')\n    assert run_demo(policy=policy) is None\ndef test_rt1_policy_x():\n    policy = load_rt1(model_key='rt1x')\n    assert run_demo(policy=policy) is None\nif __name__ == '__main__':\n    test_rt1_policy_main()\n    test_rt1_policy_simreal()\n    test_rt1_policy_multirobot()\n    test_rt1_policy_x()",
+        "type": "code",
+        "location": "/tests/test_rtl.py:1-23"
+    },
+    "121": {
+        "file_id": 16,
+        "content": "The code contains four test functions: test_rt1_policy_main, test_rt1_policy_simreal, test_rt1_policy_multirobot, and test_rt1_policy_x. Each function loads a different model key (rt1main, rt1simreal, rt1multirobot, rt1x) using load_rt1() and then runs the demo using run_demo(). The if __name__ == '__main__' block executes all test functions. All assertions expect no errors (is None).",
+        "type": "comment"
+    }
+}

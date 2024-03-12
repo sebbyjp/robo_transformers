@@ -1,0 +1,10 @@
+{
+    "summary": "The code imports necessary libraries, sets an environment variable for parallelism, loads a pretrained Octo model, downloads and processes an image, creates observation and task dictionaries, runs inference using the model, and prints the resulting action and model specifications.",
+    "details": [
+        {
+            "comment": "The code imports necessary libraries, sets an environment variable for parallelism, loads a pretrained Octo model, downloads and processes an image, creates observation and task dictionaries, runs inference using the model, and prints the resulting action and model specifications.",
+            "location": "\"/media/root/Prima/works/robo_transformers/docs/src/robo_transformers/models/octo/inference.py\":0-24",
+            "content": "import os\nfrom octo.model.octo_model import OctoModel\nos.environ['TOKENIZERS_PARALLELISM'] = 'false'\nmodel = OctoModel.load_pretrained(\"hf://rail-berkeley/octo-small\")\nfrom PIL import Image\nimport requests\nimport matplotlib.pyplot as plt\nimport numpy as np\n# download one example BridgeV2 image\nIMAGE_URL = \"https://rail.eecs.berkeley.edu/datasets/bridge_release/raw/bridge_data_v2/datacol2_toykitchen7/drawer_pnp/01/2023-04-19_09-18-15/raw/traj_group0/traj0/images0/im_12.jpg\"\nimg = np.array(Image.open(requests.get(IMAGE_URL, stream=True).raw).resize((256, 256)))\nplt.imshow(img)\n# create obs & task dict, run inference\nimport jax\n# add batch + time horizon 1\nimg = img[np.newaxis,np.newaxis,...]\nobservation = {\"image_primary\": img, \"pad_mask\": np.array([[True]])}\ntask = model.create_tasks(texts=[\"pick up the fork\"])\naction = model.sample_actions(observation, task, rng=jax.random.PRNGKey(0))\nprint(action)   # [batch, action_chunk, action_dim]\nprint(model.get_pretty_spec())"
+        }
+    ]
+}

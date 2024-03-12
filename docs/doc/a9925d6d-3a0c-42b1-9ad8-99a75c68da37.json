@@ -1,0 +1,10 @@
+{
+    "summary": "This code defines two test functions, \"test_octo_agent\" and \"test_octo_agent_with_wrist\", which both create an OctoAgent object and test its functionality. The first function runs the demo with the agent, while the second function tests the agent's action generation by providing images and wrist data as inputs. The main part of the code executes the \"test_octo_agent\" function, checks that each action is not None and has a non-empty make() result.",
+    "details": [
+        {
+            "comment": "This code defines two test functions, \"test_octo_agent\" and \"test_octo_agent_with_wrist\", which both create an OctoAgent object and test its functionality. The first function runs the demo with the agent, while the second function tests the agent's action generation by providing images and wrist data as inputs. The main part of the code executes the \"test_octo_agent\" function, checks that each action is not None and has a non-empty make() result.",
+            "location": "\"/media/root/Prima/works/robo_transformers/docs/src/tests/test_octo.py\":0-32",
+            "content": "from robo_transformers.demo import run_demo\nfrom robo_transformers.models.octo.agent import OctoAgent\nimport numpy as np\ndef test_octo_agent():\n    \"\"\"\n    Test OctoAgent\n    \"\"\"\n    agent = OctoAgent()\n    run_demo(agent)\ndef test_octo_agent_with_wrist():\n    \"\"\"\n    Test OctoAgent with wrist\n    \"\"\"\n    agent = OctoAgent()\n    image = np.ones((224, 224, 3), dtype=np.uint8)\n    image_wrist = np.ones((128, 128, 3), dtype=np.uint8)\n    action = agent.act(\n        \"Do somethings\",\n        image,\n        image_wrist,\n    )\n    assert action is not None and action.make() != {}\nif __name__ == '__main__':\n    actions = test_octo_agent()\n    for action in actions:\n        assert action is not None and action.make() != {}"
+        }
+    ]
+}

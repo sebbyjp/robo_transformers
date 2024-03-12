@@ -1,0 +1,10 @@
+{
+    "summary": "This code defines a registry of agent and action classes for different models (RT1 and Octo) in a Robot Transformer framework. It maps model names to their corresponding agent, action, and weight key configurations for future usage.",
+    "details": [
+        {
+            "comment": "This code defines a registry of agent and action classes for different models (RT1 and Octo) in a Robot Transformer framework. It maps model names to their corresponding agent, action, and weight key configurations for future usage.",
+            "location": "\"/media/root/Prima/works/robo_transformers/docs/src/robo_transformers/registry.py\":0-16",
+            "content": "from robo_transformers.models.rt1.action import RT1Action\nfrom robo_transformers.models.rt1.agent import RT1Agent\nfrom robo_transformers.models.octo.action import OctoAction\nfrom robo_transformers.models.octo.agent import OctoAgent\nREGISTRY = {\n    \"rt1\": {\n        \"agent\": RT1Agent,\n        \"action\": RT1Action,\n        \"weight_keys\": [\"rt1main\", \"rt1simreal\", \"rt1multirobot\", \"rt1x\"]\n    },\n    \"octo\": {\n        \"agent\": OctoAgent,\n        \"action\": OctoAction,\n        \"weight_keys\": [\"octo-small\", \"octo-base\"]\n    }\n}"
+        }
+    ]
+}

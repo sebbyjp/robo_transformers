@@ -1,0 +1,10 @@
+{
+    "summary": "RT1Agent class is an agent for RT1 model, inheriting from Agent. It initializes the model and state variables upon instantiation. The act() method takes input image, instruction, reward, and model & policy states to generate action using inference function. Policy state and step number are updated after each call.",
+    "details": [
+        {
+            "comment": "RT1Agent class is an agent for RT1 model, inheriting from Agent. It initializes the model and state variables upon instantiation. The act() method takes input image, instruction, reward, and model & policy states to generate action using inference function. Policy state and step number are updated after each call.",
+            "location": "\"/media/root/Prima/works/robo_transformers/docs/src/robo_transformers/models/rt1/agent.py\":0-25",
+            "content": "from robo_transformers.abstract.agent import Agent\nfrom tf_agents.policies.py_policy import PyPolicy\nfrom tf_agents.policies.tf_policy import TFPolicy\nfrom robo_transformers.models.rt1.inference import load_rt1, inference\nfrom robo_transformers.models.rt1.action import RT1Action\nfrom typing import Optional\nimport numpy.typing as npt\nimport numpy as np\nfrom beartype import beartype\n# Agent for RT1\n@beartype\nclass RT1Agent(Agent):\n    def __init__(self, weights_key: str) -> None:\n        self.model: PyPolicy | TFPolicy = load_rt1(model_key=weights_key)\n        self.policy_state: Optional[dict]   = None\n        self.step_num: int = 0\n    def act(self, instruction: str, image: npt.ArrayLike, reward: float = 0.0) -> RT1Action:\n        image = np.array(image, dtype=np.uint8)\n        action, next_state, _ = inference(instruction, image, self.step_num, reward, self.model, self.policy_state)\n        self.step_num += 1\n        self.policy_state = next_state\n        return RT1Action.from_numpy_dict(action)"
+        }
+    ]
+}

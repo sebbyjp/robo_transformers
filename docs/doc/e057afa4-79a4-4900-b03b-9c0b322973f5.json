@@ -1,0 +1,10 @@
+{
+    "summary": "This code defines an abstract class \"Action\" with a class method \"from_numpy_dict\" and a method \"make\". The class method creates an instance of the class from a dictionary where values are numpy arrays. The method \"make\" returns the action as a dictionary. The class is decorated with \"beartype\" and defined using \"dataclasses\".",
+    "details": [
+        {
+            "comment": "This code defines an abstract class \"Action\" with a class method \"from_numpy_dict\" and a method \"make\". The class method creates an instance of the class from a dictionary where values are numpy arrays. The method \"make\" returns the action as a dictionary. The class is decorated with \"beartype\" and defined using \"dataclasses\".",
+            "location": "\"/media/root/Prima/works/robo_transformers/docs/src/robo_transformers/abstract/action.py\":0-18",
+            "content": "from dataclasses import dataclass, asdict\nfrom beartype import beartype\nimport numpy as np\n@beartype\n@dataclass\nclass Action:\n    @classmethod\n    def from_numpy_dict(cls, d: dict):\n        return cls(**{k: np.squeeze(v.numpy(), axis=0) for k, v in d.items()})\n    def make(self) -> dict:\n        '''Return the action as a dictionary.\n        Returns:\n            dict: The action as a dictionary.\n        '''\n        return asdict(self)"
+        }
+    ]
+}

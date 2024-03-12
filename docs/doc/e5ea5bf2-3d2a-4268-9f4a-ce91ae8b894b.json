@@ -1,0 +1,15 @@
+{
+    "summary": "The code defines a class RT1Action derived from Action, using numpy and beartype to create the dataclass RT1ActionDictT with various action parameters as fields. The world_vector field has a default factory function set to [0.0, 0.0, 0.02].",
+    "details": [
+        {
+            "comment": "The code defines a class RT1Action, which is derived from the base Action class. It uses numpy and beartype libraries to create a dataclass called RT1ActionDictT with various action parameters as fields. These parameters include base displacement vector, base displacement vertical, gripper closedness action, rotation delta, terminate episode, and world vector. Each field has default values defined using lambda functions, ensuring the object always has initialized values.",
+            "location": "\"/media/root/Prima/works/robo_transformers/docs/src/robo_transformers/models/rt1/action.py\":0-26",
+            "content": "from dataclasses import dataclass, field\nfrom beartype import beartype\nimport numpy.typing as npt\nimport numpy as np\nfrom robo_transformers.abstract.action import Action\nimport numpy.typing as npt\nfrom typing import TypedDict\n@beartype\nclass RT1ActionDictT(TypedDict):\n    base_displacement_vector: npt.ArrayLike\n    base_displacement_vertical: npt.ArrayLike\n    gripper_closedness_action: npt.ArrayLike\n    rotation_delta: npt.ArrayLike\n    terminate_episode: npt.ArrayLike\n    world_vector: npt.ArrayLike\n@beartype\n@dataclass\nclass RT1Action(Action):\n    base_displacement_vector: np.ndarray = field(default_factory= lambda: np.array([0.0, 0.0]))\n    base_displacement_vertical_rotation:  np.ndarray   = field(default_factory= lambda : np.array([0.0]))\n    gripper_closedness_action: np.ndarray  = field(default_factory= lambda : np.array([1.0]))\n    rotation_delta:  np.ndarray   = field(default_factory= lambda : np.array([0.0, 0.0, 0.0]))\n    terminate_episode: np.ndarray   = field(default_factory= lambda : np.array([0,0,0]))"
+        },
+        {
+            "comment": "The code sets a default factory function for the \"world_vector\" field to create a numpy array with values [0.0, 0.0, 0.02]. This means that whenever a new instance of this class is created and no value is provided for \"world_vector\", it will automatically be set to this default value.",
+            "location": "\"/media/root/Prima/works/robo_transformers/docs/src/robo_transformers/models/rt1/action.py\":27-27",
+            "content": "    world_vector:  np.ndarray  = field(default_factory= lambda : np.array([0.0, 0.0, 0.02]))"
+        }
+    ]
+}
