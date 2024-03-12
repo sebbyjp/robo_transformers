@@ -33,7 +33,7 @@ class InferenceServer:
 
     def __call__(self,
                  **kwargs
-                 ) -> Union[list[dict], None]:
+                 ) -> Union[list, None]:
         '''Runs inference on a Vision Language Action model.
 
 

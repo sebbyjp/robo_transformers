@@ -34,7 +34,6 @@ class TeleOpAgent(Agent):
         """
     if 'observation_space' in kwargs:
       self.observation_space = kwargs['observation_space']
-   
       del kwargs['observation_space']
     if 'action_space' in kwargs:
       self.action_space = kwargs['action_space']
