@@ -51,8 +51,11 @@ class Sample:
         Returns:
             dict: The action as a dictionary.
         '''
-        dict_with_nones = asdict(self)
-        return {key: value for key, value in dict_with_nones.items() if value is not None}
+        dic = {key: value for key,value in asdict(self).items() if value is not None}
+        for key, value in dic.items():
+            if isinstance(value, Sample):
+                dic[key] = value.todict()
+        return dic
 
 
 

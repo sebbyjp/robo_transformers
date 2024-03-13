@@ -32,6 +32,7 @@ class InferenceServer:
             self.agent: Agent = REGISTRY[scheme][netloc](path, **kwargs)
 
     def __call__(self,
+                *args,
                  **kwargs
                  ) -> Union[list, None]:
         '''Runs inference on a Vision Language Action model.
