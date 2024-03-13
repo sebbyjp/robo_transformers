@@ -2,6 +2,7 @@ from dataclasses import dataclass, asdict
 from beartype import beartype
 from gym import spaces
 import numpy as np
+from collections import OrderedDict
 
 @beartype
 @dataclass
@@ -23,12 +24,14 @@ class Sample:
         return cls(**d)
 
     def flatten(self, d=None) -> list:
-        '''Flatten the sample.
+        '''Flatten the sample. 
         Returns:
             list: The flattened sample.
         '''
         if d is None:
-            d = asdict(self)
+            d = OrderedDict(asdict(self))
+        else:
+            d = OrderedDict(d)
 
         def items():
             for key, value in d.items():
@@ -47,11 +50,11 @@ class Sample:
         raise NotImplementedError
 
     def todict(self) -> dict:
-        '''Return the action as a dictionary.
+        '''Return the action as an ordered dictionary.
         Returns:
-            dict: The action as a dictionary.
+            dict: The action as an ordered dictionary.
         '''
-        dic = {key: value for key,value in asdict(self).items() if value is not None}
+        dic = {key: value for key,value in OrderedDict(asdict(self)).items() if value is not None}
         for key, value in dic.items():
             if isinstance(value, Sample):
                 dic[key] = value.todict()

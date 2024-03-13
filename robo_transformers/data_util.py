@@ -10,7 +10,7 @@ from pathlib import Path
 from absl import logging
 
 def create_dataset_for_space_dict(space_dict: spaces.Dict, group: h5py.Group, num_steps: int = 10):
-    logging.debug('toplevel keys: %s', str(space_dict.keys()))
+    print('data group keys: %s', str(space_dict.keys()))
     for key, space in space_dict.items():
         logging.debug(' key: %s, value: %s', key, space)
         if isinstance(space, spaces.Dict):
@@ -99,19 +99,22 @@ class Recorder:
 
     self.observation_space = observation_space
     self.action_space = action_space
+    self.num_steps = 50
 
     self.file.create_group('observation')
-    create_dataset_for_space_dict(observation_space, self.file['observation'])
+    create_dataset_for_space_dict(observation_space, self.file['observation'], self.num_steps)
 
     self.file.create_group('action')
-    create_dataset_for_space_dict(action_space, self.file['action'])
+    create_dataset_for_space_dict(action_space, self.file['action'], self.num_steps)
 
     
     self.index = 0
+
   
   def record_timestep(self, group: h5py.Group, timestep_dict, i):
+    logging.debug('group keys: %s', str(group.keys()))
     for key, value in timestep_dict.items():
-        logging.debug('toplevel key: %s, value: %s', key, value)
+        logging.debug(' key: %s, value: %s', key, value)
         if 'bounds' in key:
             # Bounds is already present in the space, so we don't need to record it
             continue
@@ -123,6 +126,7 @@ class Recorder:
             if isinstance(value, np.ndarray) and len(value.shape) == 3:
                 image = Image.fromarray(value)
                 image.save(f'{self.name}_frames/{self.index}.png')    
+            logging.debug(' about to record key: %s, value: %s', key, value)
             dataset = group[key]
             dataset[i] = value
         

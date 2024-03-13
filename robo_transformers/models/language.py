@@ -46,8 +46,15 @@ class LanguageAgent(Agent):
                              action_space=self.action_space,
                              **kwargs)
     self.last_grasp = 0
-    self.motion_controller = LocobotJoyController()
+    self.motion_controller = LocobotJoyController(record=False)
     self.vlacm = SVLACM(self.motion_controller)
+
+  def process_input(self, instruction: str,    image: npt.ArrayLike) -> tuple:
+    image = cv2.resize(np.array(image, dtype=np.uint8),(640, 480))
+    self.vlacm.last_image_seen = image
+    motion_controls, language_controls, _, _ =  self.vlacm.act(instruction)
+    gripper_base_controls = self.motion_controller.to_gripper_base_controls(motion_controls)
+    return gripper_base_controls, language_controls, image, instruction
 
   def act(
       self,
@@ -56,8 +63,8 @@ class LanguageAgent(Agent):
   ) -> list:
     # Create observation of past `window_size` number of observations
     image = cv2.resize(np.array(image, dtype=np.uint8), (640, 480))
-    motion_controls, language_controls, last_seen_image, instruction = self.vlacm.act(instruction, image)
-
+    motion_controls, language_controls, last_seen_image, instruction_ancestors = list(self.vlacm.act(instruction, image))[0]
+    print('motion_controls: ', motion_controls)
     gripper_base_controls = self.motion_controller.to_gripper_base_controls(motion_controls)
 
     for control, language_control in zip(gripper_base_controls, language_controls):
@@ -70,11 +77,12 @@ class LanguageAgent(Agent):
       else:
         grasp = (grasp + 1) / 2
       print('recording grasp: ', grasp)
-
       self.last_grasp = grasp
-      self.recorder.record(
-          observation=ImageInstruction(instruction=instruction, image=last_seen_image).todict(),
-          action=control.todict(),
-      )
+      control.left_gripper.grasp.value = grasp
+      for instruction in instruction_ancestors:
+        self.recorder.record(
+            observation=ImageInstruction(instruction=instruction, image=last_seen_image).todict(),
+            action=control.todict(),
+        )
 
     return [control.todict() for control in gripper_base_controls]

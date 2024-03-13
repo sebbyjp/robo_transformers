@@ -43,11 +43,6 @@ class TeleOpAgent(Agent):
       self.action_space = GripperBaseControl().space()
     self.xyz_step = xyz_step
     self.rpy_step = rpy_step
-    self.recorder = Recorder(name,
-                             out_dir=data_dir,
-                             observation_space=self.observation_space,
-                             action_space=self.action_space,
-                             **kwargs)
     self.last_grasp = 0
 
   def process_input(self):
