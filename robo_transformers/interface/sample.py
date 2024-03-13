@@ -29,7 +29,7 @@ class Sample:
             list: The flattened sample.
         '''
         if d is None:
-            d = asdict(self)
+            d = OrderedDict(asdict(self))
         else:
             d = OrderedDict(d)
 
@@ -50,12 +50,15 @@ class Sample:
         raise NotImplementedError
 
     def todict(self) -> dict:
-        '''Return the action as a dictionary.
+        '''Return the action as an ordered dictionary.
         Returns:
-            dict: The action as a dictionary.
+            dict: The action as an ordered dictionary.
         '''
-        dict_with_nones = OrderedDict(asdict(self))
-        return {key: value for key, value in dict_with_nones.items() if value is not None}
+        dic = {key: value for key,value in OrderedDict(asdict(self)).items() if value is not None}
+        for key, value in dic.items():
+            if isinstance(value, Sample):
+                dic[key] = value.todict()
+        return dic
 
 
 

@@ -11,21 +11,20 @@ from beartype import beartype
 import math
 from gym import spaces
 
-
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 
 @beartype
 class TeleOpAgent(Agent):
 
-  def __init__(
-      self,
-      name: str,
-      data_dir: str = "episodes",
-      xyz_step: float = 0.01,
-      rpy_step: float = math.pi / 8,
-      **kwargs
-  ) -> None:
+  def __init__(self,
+               name: str,
+               data_dir: str = "episodes",
+               xyz_step: float = 0.01,
+               rpy_step: float = math.pi / 8,
+               observation_space: Optional[spaces.Space] = None,
+                action_space: Optional[spaces.Space] = None,
+               **kwargs) -> None:
     """Agent for teleop psudo model.
 
         Args:
@@ -39,11 +38,11 @@ class TeleOpAgent(Agent):
       self.action_space = kwargs['action_space']
       del kwargs['action_space']
     else:
-      self.observation_space = ImageInstruction(supervision_type=Supervision.BINARY).space()
+      self.observation_space = ImageInstruction(supervision_type=Supervision.BINARY,
+                                                supervision=1).space()
       self.action_space = GripperBaseControl().space()
     self.xyz_step = xyz_step
     self.rpy_step = rpy_step
-    self.recorder = Recorder(name,out_dir=data_dir, observation_space=self.observation_space, action_space=self.action_space, **kwargs)
     self.last_grasp = 0
 
   def process_input(self):
@@ -77,7 +76,7 @@ class TeleOpAgent(Agent):
     elif "e" in value:
       grasp = 1.
     reward = int("c" in value)
-    done = reward or "f" in value
+    done = bool(reward or "f" in value)
 
     xyz = self.xyz_step * np.array([
         value.count("w") - value.count("s"),
@@ -98,7 +97,7 @@ class TeleOpAgent(Agent):
       image: npt.ArrayLike,
   ) -> list:
     # Create observation of past `window_size` number of observations
-    image = cv2.resize(np.array(image, dtype=np.uint8),(640, 480))
+    image = cv2.resize(np.array(image, dtype=np.uint8), (640, 480))
     action, reward, done = self.process_input()
 
     print("action: ", action)
@@ -110,12 +109,20 @@ class TeleOpAgent(Agent):
     else:
       grasp = (grasp + 1) / 2
     print('recording grasp: ', grasp)
-    
+
     self.last_grasp = grasp
-    action = GripperBaseControl(finish=done, left_gripper=GripperControl(pose=PoseControl(xyz=action[:3], rpy=action[3:6]), grasp=JointControl(Control.ABSOLUTE, bounds=[0, 1.0])) )
+    action = GripperBaseControl(finish=done,
+                                left_gripper=GripperControl(pose=PoseControl(xyz=action[:3],
+                                                                             rpy=action[3:6]),
+                                                            grasp=JointControl(
+                                                                control_type=Control.ABSOLUTE,
+                                                                value=grasp)))
     self.recorder.record(
-        observation= ImageInstruction(instruction=instruction, image=image, supervision=reward, supervision_type=Supervision.BINARY).todict(),
+        observation=ImageInstruction(instruction=instruction,
+                                     image=image,
+                                     supervision=int(reward),
+                                     supervision_type=Supervision.BINARY).todict(),
         action=action.todict(),
     )
-   
+
     return [action.todict()]
