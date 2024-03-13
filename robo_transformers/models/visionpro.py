@@ -3,7 +3,7 @@ from avp_stream import VisionProStreamer
 from robo_transformers.interface import Agent, Control, ControlAction
 from robo_transformers.data_util import Recorder
 from robo_transformers.common.observations import ImageInstruction
-from robo_transformers.common.actions import GripperBaseControl, GripperControl, JointControl, PoseControl
+from robo_transformers.common.actions import GripperBaseControl, GripperControl, JointControl, PoseControl, PlanarDirectionControl
 from beartype.typing import Any, Optional
 import os
 import cv2
@@ -15,10 +15,12 @@ from gym import spaces
 from scipy.spatial.transform import Rotation as R
 from agents_corp.rt_genie.smart_vlacm import SVLACM
 from agents_corp.rt_genie.motion_control import MotionController, LocobotJoyController, LocobotControl
-
+import time
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 def matrix_to_xyz_rpy(matrix):
+    '''Convert a 4x4 matrix to xyz and rpy.'''
+    matrix = np.squeeze(matrix)
     assert matrix.shape == (4, 4)
     # Extract translation
     x, y, z = matrix[:3, 3]
@@ -58,8 +60,8 @@ class HumanoidControl(ControlAction):
     head: np.ndarray = np.zeros((4, 4))
     right_wrist: np.ndarray = np.zeros((4, 4))
     left_wrist: np.ndarray = np.zeros((4, 4))
-    right_fingers: np.ndarray = np.zeros((25, 4, 4))
-    left_fingers: np.ndarray = np.zeros((25, 4, 4))
+    # right_fingers: np.ndarray = np.zeros((25, 4, 4))
+    # left_fingers: np.ndarray = np.zeros((25, 4, 4))
     right_pinch_distance: JointControl = field(default_factory=lambda: JointControl())
     left_pinch_distance: JointControl = field(default_factory=lambda: JointControl())
     right_wrist_roll: JointControl = field(default_factory=lambda: JointControl())
@@ -74,18 +76,17 @@ class HumanoidControl(ControlAction):
     # left_wrist_roll:np.ndarray = np.eye(4)
 
 
-    def get_relative(self, other):
+    def get_relative(self, other: 'HumanoidControl'):
         """Get the relative transformation to another HumanoidControl."""
         relative = HumanoidControl(
             head=get_transformation(other.head, self.head),
             right_wrist=get_transformation(other.right_wrist, self.right_wrist),
             left_wrist=get_transformation(other.left_wrist, self.left_wrist),
-            right_fingers=get_transformation(other.right_fingers, self.right_fingers),
-            left_fingers=get_transformation(other.left_fingers, self.left_fingers),
-            right_pinch_distance=self.right_pinch_distance - other.right_pinch_distance,
-            left_pinch_distance=self.left_pinch_distance - other.left_pinch_distance,
-            right_wrist_roll=self.right_wrist_roll - other.right_wrist_roll,
-            left_wrist_roll=self.left_wrist_roll - other.left_wrist_roll
+            # right_fingers=get_transformation(other.right_fingers, self.right_fingers),
+            # left_fingers=get_transformation(other.left_fingers, self.left_fingers),
+            right_pinch_distance=self.right_pinch_distance.value - other.right_pinch_distance.value,
+            left_pinch_distance=self.left_pinch_distance.value - other.left_pinch_distance.value,
+            right_wrist_roll=self.right_wrist_roll.value - other.right_wrist_roll.value,
         )
         return relative
 
@@ -118,12 +119,12 @@ def humanoid_to_gripper_base_control(humanoid_control: HumanoidControl) -> Gripp
     base_x, base_y, _, _, base_pitch, base_yaw = matrix_to_xyz_rpy(head)
     
     return GripperBaseControl(
-        base=PoseControl(
+        base=PlanarDirectionControl(
             control_type=Control.RELATIVE,
             xy=[base_x, base_y],
-            yaw=[base_yaw],
+            yaw=base_yaw,
             xy_bounds=[-1, 1],
-            yaw_bounds=[-math.pi, math.pi]
+            yaw_bounds=[-2*math.pi, 2*math.pi]
         ),
         left_gripper=GripperControl(
             pose=PoseControl(
@@ -133,22 +134,18 @@ def humanoid_to_gripper_base_control(humanoid_control: HumanoidControl) -> Gripp
                 xyz_bounds=[-1, 1],
                 rpy_bounds=[-math.pi, math.pi]
             ),
-            grasp=Control.RELATIVE,
-            value=left_pinch_distance,
-            bounds=[0, 1]
+            grasp=JointControl(control_type=Control.ABSOLUTE, value=left_pinch_distance, bounds=[0, 1]),
         ),
-        right_gripper=GripperControl(
-            pose=PoseControl(
-                control_type=Control.RELATIVE,
-                xyz=matrix_to_xyz_rpy(right_wrist)[:3],
-                rpy=matrix_to_xyz_rpy(right_wrist)[3:],
-                xyz_bounds=[-1, 1],
-                rpy_bounds=[-math.pi, math.pi]
-            ),
-            grasp=Control.RELATIVE,
-            value=right_pinch_distance,
-            bounds=[0, 1]
-        ),
+        # right_gripper=GripperControl(
+        #     pose=PoseControl(
+        #         control_type=Control.RELATIVE,
+        #         xyz=matrix_to_xyz_rpy(right_wrist)[:3],
+        #         rpy=matrix_to_xyz_rpy(right_wrist)[3:],
+        #         xyz_bounds=[-1, 1],
+        #         rpy_bounds=[-math.pi, math.pi]
+        #     ),
+        #     grasp=JointControl(control_type=Control.ABSOLUTE, value=right_pinch_distance, bounds=[0, 1]),
+        # ),
         finish=False,
         camera_pan=JointControl(Control.RELATIVE, value=base_yaw, bounds=[-math.pi, math.pi]),
         camera_tilt=JointControl(Control.RELATIVE, value=base_pitch, bounds=[-math.pi, math.pi]),
@@ -231,28 +228,35 @@ class VisionProAgent(Agent):
   ) -> list:
     # Create observation of past `window_size` number of observations
     r = self.visionpro_streamer.latest
-    absoulte_humanoid_control =   HumanoidControl(
+    absolute_humanoid_control =   HumanoidControl(
             head=r['head'],
             right_wrist=r['right_wrist'],
             left_wrist=r['left_wrist'],
-            right_fingers=r['right_fingers'],
-            left_fingers=r['left_fingers'],
-            right_pinch_distance=r['right_pinch_distance'],
-            left_pinch_distance=r['left_pinch_distance'],
-            # right_wrist_roll=r['right_wrist_roll'],
-            # left_wrist_roll=r['left_wrist_roll']
+            # right_fingers=r['right_fingers'],
+            # left_fingers=r['left_fingers'],
+            right_pinch_distance=JointControl(control_type=Control.ABSOLUTE, value=r['right_pinch_distance']),
+            left_pinch_distance=JointControl(control_type=Control.ABSOLUTE, value=r['left_pinch_distance']),
+            right_wrist_roll=JointControl(control_type=Control.ABSOLUTE, value=r['right_wrist_roll']),
+            left_wrist_roll=JointControl(control_type=Control.ABSOLUTE, value=r['left_wrist_roll'])
+
+
         )
     
     if self.humanoid_control is None:
-        self.humanoid_control = absoulte_humanoid_control
+        self.humanoid_control = absolute_humanoid_control
     
-    relative_humanoid_control = absoulte_humanoid_control.get_relative(self.humanoid_control)
-    self.humanoid_control = absoulte_humanoid_control
-  
-    return [humanoid_to_gripper_base_control(relative_humanoid_control)]
+    relative_humanoid_control = absolute_humanoid_control.get_relative(self.humanoid_control)
+    self.humanoid_control = absolute_humanoid_control
+
+    gripper_base_control = humanoid_to_gripper_base_control(relative_humanoid_control)
+    print('gripper x,y,z,roll,pitch,yaw:', gripper_base_control.left_gripper.pose.xyz, gripper_base_control.left_gripper.pose.rpy)
+    print('gripper grasp:', gripper_base_control.left_gripper.grasp.value)
+    print('gripper base x,y,yaw:', gripper_base_control.base.xy, gripper_base_control.base.yaw)
+    return [humanoid_to_gripper_base_control(relative_humanoid_control).todict()]
 
 
 if __name__ == "__main__":
     agent = VisionProAgent("test", device_ip="10.4.33.50")
     while True:
         agent.act("", np.zeros((480, 640, 3)))
+        time.sleep(3)
