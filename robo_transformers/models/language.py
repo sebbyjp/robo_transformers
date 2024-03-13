@@ -51,33 +51,39 @@ class LanguageAgent(Agent):
     self.motion_controller = LocobotJoyController()
     self.vlacm = SVLACM()
 
+  def process_input(self, instruction: str,    image: npt.ArrayLike) -> tuple:
+    image = cv2.resize(np.array(image, dtype=np.uint8),(640, 480))
+    self.vlacm.last_image_seen = image
+    motion_controls, language_controls, _, _ =  self.vlacm.act(instruction)
+    gripper_base_controls = self.motion_controller.to_gripper_base_controls(motion_controls)
+    return gripper_base_controls, language_controls, image, instruction
+
   def act(
       self,
-      instruction: str,
+      _,  # instruction: str,
       image: npt.ArrayLike,
   ) -> list:
     # Create observation of past `window_size` number of observations
-    image = cv2.resize(np.array(image, dtype=np.uint8),(640, 480))
-    self.vlacm.last_image_seen = image
-    motion_controls, language_controls, last_seen_image, instruction =  self.vlacm.act()
-
-    gripper_base_controls = self.motion_controller.to_gripper_base_controls(motion_controls)
+    gripper_base_controls, language_controls, last_seen_image, instruction = self.process_input(instruction, image)
 
     for control, language_control in zip(gripper_base_controls, language_controls):
         control: LocobotControl = control
         print('control from la %s is %s ',language_control,  control)
-        # Convert absolute grasp to relative grasp.
+        # Convert relative grasp to absolute grasp.
         grasp = control.left_gripper.grasp.value
         if grasp == 0:
             grasp = self.last_grasp
         else:
             grasp = (grasp + 1) / 2
         print('recording grasp: ', grasp)
-        
+        control.left_gripper.grasp.value = grasp
         self.last_grasp = grasp
         self.recorder.record(
             observation= ImageInstruction(instruction=instruction, image=last_seen_image).todict(),
             action=control.todict(),
+        )
+        self.recorder.record(
+           observation= ImageInstruction(instruction=language_control, image=last_seen_image).todict(),
         )
    
     return [control.todict() for control in gripper_base_controls]
