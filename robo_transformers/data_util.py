@@ -10,14 +10,14 @@ from pathlib import Path
 from absl import logging
 
 def create_dataset_for_space_dict(space_dict: spaces.Dict, group: h5py.Group, num_steps: int = 10):
-    print('data group keys: %s', str(space_dict.keys()))
+    # print('data group keys: %s', str(space_dict.keys()))
     for key, space in space_dict.items():
         logging.debug(' key: %s, value: %s', key, space)
         if isinstance(space, spaces.Dict):
             subgroup = group.create_group(key)
             create_dataset_for_space_dict(space, subgroup, num_steps)
         else:
-            shape = space.shape if space.shape else (num_steps,)
+            shape = space.shape if space.hasattr('shape') else (num_steps,)
             dtype = space.dtype if space.dtype != str else string_dtype()
             group.create_dataset(key, (num_steps, *shape), dtype=dtype, maxshape=(None, *shape))
 
@@ -32,12 +32,14 @@ def get_stats(group):
             stats_dict[key] = get_stats(item)
     return stats_dict
 
+
 class Recorder:
   def __init__(self,
     name: str,
     observation_space: spaces.Dict,
     action_space: spaces.Dict,
-    out_dir: str = 'episodes'):
+    out_dir: str = 'episodes',
+    num_steps: int = 50):
     '''Records a dataset to a file. Saves images to folder with _frames appended to the name stem.
 
     Args:
@@ -99,7 +101,7 @@ class Recorder:
 
     self.observation_space = observation_space
     self.action_space = action_space
-    self.num_steps = 50
+    self.num_steps = num_steps
 
     self.file.create_group('observation')
     create_dataset_for_space_dict(observation_space, self.file['observation'], self.num_steps)
@@ -137,6 +139,12 @@ class Recorder:
     if hasattr(action, 'todict'):
         action = action.todict()
     logging.debug('Recording action: %s for instruction %s', str(action), str(observation.get('instruction', None))) 
+    # Check if the index has reached the initial size of the datasets
+    if self.index == self.file['observation/image'].shape[0]:
+        # Double the size of the datasets
+        self.file['observation'].resize((self.index * 2,))
+        self.file['action'].resize((self.index * 2,))
+
     logging.debug('action group keys: %s', str(self.file['action'].keys()))
     self.record_timestep(self.file['observation'], observation, self.index)
     self.record_timestep(self.file['action'], action, self.index)
@@ -168,6 +176,15 @@ class Recorder:
 
   def close(self):
     self.file.close()
+
+def read_timestep(group: h5py.Group, i):
+    timestep_dict = {}
+    for key, item in group.items():
+        if isinstance(item, h5py.Dataset):
+            timestep_dict[key] = item[i]
+        elif isinstance(item, h5py.Group):
+            timestep_dict[key] = read_timestep(item, i)
+    return timestep_dict
 
 class Replayer:
   def __init__(self, path: str, observation_space: spaces.Dict, action_space: spaces.Dict):
@@ -209,7 +226,7 @@ class Replayer:
     ```
     '''
     self.path = path
-    self.frames_path = path.split('.')[0] + '_frames'
+    self.frames_path = Path(self.path).stem + '_frames'
     self.file = h5py.File(path, "a")
     self.size = self.file.attrs['size']
 
@@ -229,16 +246,37 @@ class Replayer:
     else:
       self.index += 1
       i = self.index
-
-      action = self.action_space.from_jsonable(self.file['action'])[i]
+      xyz = self.file['action']['left_gripper']['pose']['xyz'][i]
+      rpy = self.file['action']['left_gripper']['pose']['rpy'][i]
+      x, y, z = xyz
+      roll, pitch, yaw = rpy
+      grasp = self.file['action']['left_gripper']['grasp']['value'][i]
+      camera_pan = self.file['action']['camera_pan']['value'][i]
+      camera_tilt = self.file['action']['camera_tilt']['value'][i]
+      print('action %s', str((grasp)))
+      exit()
       observation = self.observation_space.from_jsonable(self.file['observation'])[i]
-
+      os.makedirs(self.frames_path, exist_ok=True)
       Image.fromarray(observation['image']).save(f'{self.frames_path}/{i}.png')
       
-
       return observation, action
 
   def close(self):
     self.file.close()
+
+if __name__ == '__main__':
+    from robo_transformers.common.observations import ImageInstruction
+    from robo_transformers.common.actions import GripperBaseControl, JointControl
+    r = Replayer('../../ps4_episodes/tape.hdf5', ImageInstruction().space(), GripperBaseControl(
+        camera_pan=JointControl(),
+        camera_tilt=JointControl(),
+    ).space())
+    recorder = Recorder('tape',  r.observation_space, r.action_space, 'ps4_episodes', 200)
+    for observation, action in r:
+        flipped = Image.fromarray(observation['image']).transpose(Image.FLIP_LEFT_RIGHT)
+
+        new_observation = ImageInstruction(instruction=observation['instruction'], image=np.array(flipped))
+
+        recorder.record(new_observation, action)
 
 
