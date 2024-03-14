@@ -2,14 +2,20 @@ from robo_transformers.interface import Observation, Sample
 from gym import spaces
 import numpy as np
 from dataclasses import dataclass, field
+from PIL import Image as PILImage
+DEFAULT_HEIGHT = 480
+DEFAULT_WIDTH = 640
 
 @dataclass
 class Image(Sample):
     '''Sample for an image.
     '''
-    height: int = 480
-    width: int = 640
-    pixels: np.array = field(default_factory=lambda: np.zeros((480, 640, 3), dtype=np.uint8))
+    height: int = DEFAULT_HEIGHT
+    width: int = DEFAULT_WIDTH
+    pixels: np.array = field(default_factory=lambda: np.zeros((DEFAULT_HEIGHT, DEFAULT_WIDTH, 3), dtype=np.uint8))
+
+    def __post_init__(self):
+        self.pixels = PILImage.fromarray(self.pixels).resize((self.width, self.height))
 
     def space(self) -> spaces.Dict:
         return spaces.Box(low=0, high=255, shape=(self.height, self.width, 3), dtype=np.uint8)
