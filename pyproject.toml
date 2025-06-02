@@ -23,7 +23,7 @@ pillow = "^10.1.0"
 tensorflow-hub = "^0.15.0"
 tf-agents = "^0.19.0"
 importlib-resources = "^6.1.1"
-protobuf = ">=3.19.6,<4.24"
+protobuf = ">=3.19.6,<4.26"
 octo = {git = "https://github.com/sebbyjp/octo.git", rev = "073c383520c813d08466c9e8fdf35bac6394fcc0"}
 beartype = "^0.16.4"
 pyyaml = "^6.0.1"
